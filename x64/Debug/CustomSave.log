@@ -1,0 +1,9 @@
+﻿  dllmain.cpp
+E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\CustomSave\dllmain.cpp(46,1): error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
+  logger.cpp
+E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\CustomSave\logger.cpp(23,1): error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
+  save_manager.cpp
+E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\CustomSave\save_manager.cpp(54,1): error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
+  stdafx.cpp
+E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\CustomSave\stdafx.cpp(2,1): error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
+  Generating Code...
