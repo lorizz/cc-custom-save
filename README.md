@@ -9,6 +9,14 @@
 - Includes a patched `castle.exe` that removes Steam DRM (necessary for ASI modding).
 - Unknown bytes in the save file allow further exploration and customization by the modder.
 
+## Why the Patched `castle.exe` is Necessary
+
+The patched `castle.exe` is **crucial** for Custom Save and other ASI mods to function properly. By default, Castle Crashers' Steam version includes DRM (Digital Rights Management) that restricts the injection of multiple ASI (DLL) mods. This DRM blocks modifications that interact with the game's executable.
+
+By using the patched `castle.exe`, the Steam DRM is removed, allowing the injection of multiple ASI mods like **Custom Save**. This patched executable doesn't harm your game in any way—it only removes the DRM, leaving the core game unchanged. The mod allows you to freely mod the game while still enjoying the original Castle Crashers experience.
+
+> **IMPORTANT:** To launch the game with the mod enabled, you must run it from the `start.bat` file provided in this mod package.
+
 ## Installation
 
 1. **Backup** the original `castle.exe` by copying it to a safe location.
