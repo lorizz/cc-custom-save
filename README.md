@@ -38,4 +38,13 @@ If you have added new characters, you need to modify the value of `save_data_inf
 
 - All values in the JSON are written in **decimal** format. The mod will automatically convert them to **hexadecimal** for the game.
 - The unlock status is represented as:
-  - `0` =
+  - `0` = **locked**
+  - `128` = **unlocked** (`128` = `0x80` in hexadecimal)
+
+## Notes
+
+Some bytes in the save file are still unknown and may offer additional modding opportunities. Further exploration is encouraged for advanced modders.
+
+---
+
+Enjoy expanding your Castle Crashers roster with **Custom Save**! For any issues or inquiries, feel free to open an issue or contribute to the project.
