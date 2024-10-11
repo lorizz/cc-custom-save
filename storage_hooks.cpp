@@ -205,23 +205,22 @@ void WriteByteToJson(uint32_t offset, uint8_t byteValue) {
 
     if (offset < 64) {
         // Update GlobalUnlocks
-        size_t fieldOffset = offset % 64;
         GlobalUnlocks globalUnlocksData = jsonToGlobalUnlocks(gameData["globalUnlocks"]);
-        if (fieldOffset == 0) globalUnlocksData.unknownByte = byteValue;
-        else if (fieldOffset == 1) globalUnlocksData.voiceVolume = byteValue;
-        else if (fieldOffset == 2) globalUnlocksData.musicVolume = byteValue;
-        else if (fieldOffset == 3) globalUnlocksData.sfxVolume = byteValue;
-        else if (fieldOffset >= 4 && fieldOffset <= 7) globalUnlocksData.unknownArray1[fieldOffset] = byteValue;
-        else if (fieldOffset == 8) globalUnlocksData.arenas = byteValue;
-        else if (fieldOffset >= 9 && fieldOffset <= 12) globalUnlocksData.animals[fieldOffset] = byteValue;
-        else if (fieldOffset >= 13 && fieldOffset <= 16) globalUnlocksData.itemUnlocks[fieldOffset] = byteValue;
-        else if (fieldOffset == 17) globalUnlocksData.relics = byteValue;
-        else if (fieldOffset >= 18 && fieldOffset <= 29) globalUnlocksData.weapons[fieldOffset] = byteValue;
-        else if (fieldOffset >= 30 && fieldOffset <= 37) globalUnlocksData.dlcWeapons[fieldOffset] = byteValue;
-        else if (fieldOffset >= 38 && fieldOffset <= 47) globalUnlocksData.unknownArray2[fieldOffset] = byteValue;
-        else if (fieldOffset >= 48 && fieldOffset <= 51) globalUnlocksData.backOffBarbarianTime[fieldOffset] = byteValue;
-        else if (fieldOffset == 52) globalUnlocksData.backOffBarbarianBestChar = byteValue;
-        else if (fieldOffset >= 53 && fieldOffset <= 63) globalUnlocksData.unknownArray3[fieldOffset] = byteValue;
+        if (offset == 0) globalUnlocksData.unknownByte = byteValue;
+        else if (offset == 1) globalUnlocksData.voiceVolume = byteValue;
+        else if (offset == 2) globalUnlocksData.musicVolume = byteValue;
+        else if (offset == 3) globalUnlocksData.sfxVolume = byteValue;
+        else if (offset >= 4 && offset <= 7) globalUnlocksData.unknownArray1[offset - 4] = byteValue;
+        else if (offset == 8) globalUnlocksData.arenas = byteValue;
+        else if (offset >= 9 && offset <= 12) globalUnlocksData.animals[offset - 9] = byteValue;
+        else if (offset >= 13 && offset <= 16) globalUnlocksData.itemUnlocks[offset - 13] = byteValue;
+        else if (offset == 17) globalUnlocksData.relics = byteValue;
+        else if (offset >= 18 && offset <= 29) globalUnlocksData.weapons[offset - 18] = byteValue;
+        else if (offset >= 30 && offset <= 37) globalUnlocksData.dlcWeapons[offset - 30] = byteValue;
+        else if (offset >= 38 && offset <= 47) globalUnlocksData.unknownArray2[offset - 38] = byteValue;
+        else if (offset >= 48 && offset <= 51) globalUnlocksData.backOffBarbarianTime[offset - 48] = byteValue;
+        else if (offset == 52) globalUnlocksData.backOffBarbarianBestChar = byteValue;
+        else if (offset >= 53 && offset <= 63) globalUnlocksData.unknownArray3[offset - 53] = byteValue;
 
         gameData["globalUnlocks"] = globalUnlocksToJson(globalUnlocksData);
     }
@@ -237,25 +236,28 @@ void WriteByteToJson(uint32_t offset, uint8_t byteValue) {
             return;
         }
 
+        l.Get()->info("Writing to offset {} for character ID: {}, value: {}", fieldOffset, characterIndex, byteValue);
+        l.Get()->flush();
+
         CharacterData charData = jsonToCharacterData(gameData["characters"][characterIndex]);
 
         if (fieldOffset == 0) charData.unlockStatus = byteValue;
         else if (fieldOffset == 1) charData.level = byteValue;
-        else if (fieldOffset >= 2 && fieldOffset <= 5) charData.xp[fieldOffset] = byteValue;
+        else if (fieldOffset >= 2 && fieldOffset <= 5) charData.xp[fieldOffset - 2] = byteValue;
         else if (fieldOffset == 6) charData.weapon = byteValue;
         else if (fieldOffset == 7) charData.pet = byteValue;
-        else if (fieldOffset >= 8 && fieldOffset <= 11) charData.stats[fieldOffset] = byteValue;
-        else if (fieldOffset >= 12 && fieldOffset <= 14) charData.normalLevelUnlocks[fieldOffset] = byteValue;
-        else if (fieldOffset >= 15 && fieldOffset <= 17) charData.consumableItems[fieldOffset] = byteValue;
+        else if (fieldOffset >= 8 && fieldOffset <= 11) charData.stats[fieldOffset - 8] = byteValue;
+        else if (fieldOffset >= 12 && fieldOffset <= 14) charData.normalLevelUnlocks[fieldOffset - 12] = byteValue;
+        else if (fieldOffset >= 15 && fieldOffset <= 17) charData.consumableItems[fieldOffset - 15] = byteValue;
         else if (fieldOffset == 18) charData.nonConsumableItems = byteValue;
-        else if (fieldOffset >= 19 && fieldOffset <= 22) charData.money[fieldOffset] = byteValue;
+        else if (fieldOffset >= 19 && fieldOffset <= 22) charData.money[fieldOffset - 19] = byteValue;
         else if (fieldOffset == 23) charData.insaneModeStoreUnlock = byteValue;
-        else if (fieldOffset >= 24 && fieldOffset <= 26) charData.insaneLevelUnlocks[fieldOffset] = byteValue;
+        else if (fieldOffset >= 24 && fieldOffset <= 26) charData.insaneLevelUnlocks[fieldOffset - 24] = byteValue;
         else if (fieldOffset == 27) charData.skullStatus = byteValue;
         else if (fieldOffset == 28) charData.dugUpItems = byteValue;
         else if (fieldOffset == 29) charData.princessKisses = byteValue;
-        else if (fieldOffset >= 30 && fieldOffset <= 31) charData.arenaWins[fieldOffset] = byteValue;
-        else if (fieldOffset >= 32 && fieldOffset <= 48) charData.unknown[fieldOffset] = byteValue;
+        else if (fieldOffset >= 30 && fieldOffset <= 31) charData.arenaWins[fieldOffset - 30] = byteValue;
+        else if (fieldOffset >= 32 && fieldOffset <= 47) charData.unknown[fieldOffset - 32] = byteValue;
 
         gameData["characters"][characterIndex] = characterDataToJson(charData);
     }
@@ -290,37 +292,32 @@ uint8_t ReadByteFromJson(uint32_t offset) {
     inputFile >> gameData;
     inputFile.close();
 
-    uint8_t byteValue;
+    uint8_t byteValue = 0;
 
     if (offset < 64) {
         // Read from GlobalUnlocks
-        size_t fieldOffset = offset % 64;
         GlobalUnlocks globalUnlocksData = jsonToGlobalUnlocks(gameData["globalUnlocks"]);
-        if (fieldOffset == 0) byteValue = globalUnlocksData.unknownByte;
-        else if (fieldOffset == 1) byteValue = globalUnlocksData.voiceVolume;
-        else if (fieldOffset == 2) byteValue = globalUnlocksData.musicVolume;
-        else if (fieldOffset == 3) byteValue = globalUnlocksData.sfxVolume;
-        else if (fieldOffset >= 4 && fieldOffset <= 7) globalUnlocksData.unknownArray1[fieldOffset];
-        else if (fieldOffset == 8) byteValue = globalUnlocksData.arenas;
-        else if (fieldOffset >= 9 && fieldOffset <= 12) byteValue = globalUnlocksData.animals[fieldOffset];
-        else if (fieldOffset >= 13 && fieldOffset <= 16) byteValue = globalUnlocksData.itemUnlocks[fieldOffset];
-        else if (fieldOffset == 17) byteValue = globalUnlocksData.relics;
-        else if (fieldOffset >= 18 && fieldOffset <= 29) byteValue = globalUnlocksData.weapons[fieldOffset];
-        else if (fieldOffset >= 30 && fieldOffset <= 37) byteValue = globalUnlocksData.dlcWeapons[fieldOffset];
-        else if (fieldOffset >= 38 && fieldOffset <= 47) byteValue = globalUnlocksData.unknownArray2[fieldOffset];
-        else if (fieldOffset >= 48 && fieldOffset <= 51) byteValue = globalUnlocksData.backOffBarbarianTime[fieldOffset];
-        else if (fieldOffset == 52) byteValue = globalUnlocksData.backOffBarbarianBestChar;
-        else if (fieldOffset >= 53 && fieldOffset <= 63) byteValue = globalUnlocksData.unknownArray3[fieldOffset];
+        if (offset == 0) byteValue = globalUnlocksData.unknownByte;
+        else if (offset == 1) byteValue = globalUnlocksData.voiceVolume;
+        else if (offset == 2) byteValue = globalUnlocksData.musicVolume;
+        else if (offset == 3) byteValue = globalUnlocksData.sfxVolume;
+        else if (offset >= 4 && offset <= 7) byteValue = globalUnlocksData.unknownArray1[offset - 4];
+        else if (offset == 8) byteValue = globalUnlocksData.arenas;
+        else if (offset >= 9 && offset <= 12) byteValue = globalUnlocksData.animals[offset - 9];
+        else if (offset >= 13 && offset <= 16) byteValue = globalUnlocksData.itemUnlocks[offset - 13];
+        else if (offset == 17) byteValue = globalUnlocksData.relics;
+        else if (offset >= 18 && offset <= 29) byteValue = globalUnlocksData.weapons[offset - 18];
+        else if (offset >= 30 && offset <= 37) byteValue = globalUnlocksData.dlcWeapons[offset - 30];
+        else if (offset >= 38 && offset <= 47) byteValue = globalUnlocksData.unknownArray2[offset - 38];
+        else if (offset >= 48 && offset <= 51) byteValue = globalUnlocksData.backOffBarbarianTime[offset - 48];
+        else if (offset == 52) byteValue = globalUnlocksData.backOffBarbarianBestChar;
+        else if (offset >= 53 && offset <= 63) byteValue = globalUnlocksData.unknownArray3[offset - 53];
     }
     else {
-        l.Get()->info("Reading from character");
-        l.Get()->flush();
         // Read from CharacterData
         uint32_t characterOffset = offset - 64;
         size_t characterIndex = characterOffset / 48;  // Each character occupies 48 bytes
         size_t fieldOffset = characterOffset % 48;
-        l.Get()->info("Character offset {}, index {}, fieldOffset {}", characterOffset, characterIndex, fieldOffset);
-        l.Get()->flush();
 
         if (characterIndex >= gameData["characters"].size()) {
             l.Get()->error("Invalid character index: {}", characterIndex);
@@ -328,30 +325,28 @@ uint8_t ReadByteFromJson(uint32_t offset) {
             throw std::runtime_error("Invalid character index");
         }
 
-        l.Get()->info("Character is valid!");
+        l.Get()->info("Writing to offset {} for character ID: {}, value: {}", fieldOffset, characterIndex, byteValue);
         l.Get()->flush();
 
         CharacterData charData = jsonToCharacterData(gameData["characters"][characterIndex]);
-        l.Get()->info("Character data found");
-        l.Get()->flush();
 
         if (fieldOffset == 0) byteValue = charData.unlockStatus;
         else if (fieldOffset == 1) byteValue = charData.level;
-        else if (fieldOffset >= 2 && fieldOffset <= 5) byteValue = charData.xp[fieldOffset];
+        else if (fieldOffset >= 2 && fieldOffset <= 5) byteValue = charData.xp[fieldOffset - 2];
         else if (fieldOffset == 6) byteValue = charData.weapon;
         else if (fieldOffset == 7) byteValue = charData.pet;
-        else if (fieldOffset >= 8 && fieldOffset <= 11) byteValue = charData.stats[fieldOffset];
-        else if (fieldOffset >= 12 && fieldOffset <= 14) byteValue = charData.normalLevelUnlocks[fieldOffset];
-        else if (fieldOffset >= 15 && fieldOffset <= 17) byteValue = charData.consumableItems[fieldOffset];
+        else if (fieldOffset >= 8 && fieldOffset <= 11) byteValue = charData.stats[fieldOffset - 8];
+        else if (fieldOffset >= 12 && fieldOffset <= 14) byteValue = charData.normalLevelUnlocks[fieldOffset - 12];
+        else if (fieldOffset >= 15 && fieldOffset <= 17) byteValue = charData.consumableItems[fieldOffset - 15];
         else if (fieldOffset == 18) byteValue = charData.nonConsumableItems;
-        else if (fieldOffset >= 19 && fieldOffset <= 22) byteValue = charData.money[fieldOffset];
+        else if (fieldOffset >= 19 && fieldOffset <= 22) byteValue = charData.money[fieldOffset - 19];
         else if (fieldOffset == 23) byteValue = charData.insaneModeStoreUnlock;
-        else if (fieldOffset >= 24 && fieldOffset <= 26) byteValue = charData.insaneLevelUnlocks[fieldOffset];
+        else if (fieldOffset >= 24 && fieldOffset <= 26) byteValue = charData.insaneLevelUnlocks[fieldOffset - 24];
         else if (fieldOffset == 27) byteValue = charData.skullStatus;
         else if (fieldOffset == 28) byteValue = charData.dugUpItems;
         else if (fieldOffset == 29) byteValue = charData.princessKisses;
-        else if (fieldOffset >= 30 && fieldOffset <= 31) byteValue = charData.arenaWins[fieldOffset];
-        else if (fieldOffset >= 32 && fieldOffset <= 47) byteValue = charData.unknown[fieldOffset];
+        else if (fieldOffset >= 30 && fieldOffset <= 31) byteValue = charData.arenaWins[fieldOffset - 30];
+        else if (fieldOffset >= 32 && fieldOffset <= 47) byteValue = charData.unknown[fieldOffset - 32];
     }
 
     return byteValue;
