@@ -156,7 +156,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="addon_characters.h" />
+    <ClInclude Include="character_data.h" />
     <ClInclude Include="default_character_data.h" />
+    <ClInclude Include="dynamic_character_data.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="storage_hooks.h" />
@@ -164,6 +167,9 @@
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="addon_characters.cpp" />
+    <ClCompile Include="character_data.cpp" />
+    <ClCompile Include="default_character_data.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="stdafx.cpp" />

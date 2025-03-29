@@ -1,8 +1,8 @@
-﻿  storage_hooks.cpp
+﻿  dllmain.cpp
   Generating code
-  0 of 6271 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+  3 of 6570 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    5 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   CustomSave.vcxproj -> E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\Release\CustomSave.asi
   E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\Release\CustomLocalizations.asi

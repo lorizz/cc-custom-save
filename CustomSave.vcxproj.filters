@@ -33,6 +33,15 @@
     <ClInclude Include="default_character_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="character_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamic_character_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="addon_characters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -45,6 +54,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="storage_hooks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="character_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="default_character_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="addon_characters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
