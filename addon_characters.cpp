@@ -54,8 +54,6 @@ std::vector<CharacterData> readAddonCharacters(const std::string& iniFilename) {
 
         CharacterData character(id, startingWeaponId, unlocked);
 
-        character.addData("isUnlocked", std::vector<uint8_t>{ unlocked });
-
         addonChars.push_back(character);
         logger.Get()->info("Parsed addon character: id='{}', startingWeaponId={}, isUnlocked={}",
             id, startingWeaponId, unlocked);
