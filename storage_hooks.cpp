@@ -491,7 +491,7 @@ __declspec(naked) void OriginalWriteStorageCloned()
 		push ebp
 		mov ebp, esp
 		mov ecx, dword ptr ss : [ebp + 0xC]
-		mov eax, dword ptr ds : [0xAA8598]
+		mov eax, dword ptr ds : [0xAA8598] // TODO: This must be copied from (base + 0x098CEC)
 		mov edx, dword ptr ds : [eax + ecx * 4 + 0x14]
 		cmp byte ptr ds : [edx], 0
 		jne label_87AEC8
@@ -527,6 +527,175 @@ __declspec(naked) void OriginalWriteStorageCloned()
 	}
 }
 
+BYTE* InjectStorageCode(uintptr_t base) {
+	BYTE* newMemory = (BYTE*)VirtualAlloc(NULL, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	if (newMemory == NULL) {
+		return 0x0;
+	}
+
+	// Set up our code cave
+	BYTE* codeCave = newMemory;
+	// Write our assembly instructions as bytes
+	int offset = 0;
+
+	// push ebp
+	codeCave[offset++] = 0x55;
+
+	// mov ebp, esp
+	codeCave[offset++] = 0x89;
+	codeCave[offset++] = 0xE5;
+
+	// mov ecx, dword ptr ss:[ebp + 0xC]
+	codeCave[offset++] = 0x8B;
+	codeCave[offset++] = 0x4D;
+	codeCave[offset++] = 0x0C;
+
+	// mov eax, dword ptr ds:[0xAA8598]
+	DWORD addressValue = *(DWORD*)(base + 0x098CC8);
+	*(DWORD*)(codeCave + offset) = addressValue;
+	offset += 5;
+
+	// mov edx, dword ptr ds:[eax + ecx * 4 + 0x14]
+	codeCave[offset++] = 0x8B;
+	codeCave[offset++] = 0x54;
+	codeCave[offset++] = 0x88;
+	codeCave[offset++] = 0x14;
+
+	// cmp byte ptr ds:[edx], 0
+	codeCave[offset++] = 0x80;
+	codeCave[offset++] = 0x3A;
+	codeCave[offset++] = 0x00;
+
+	// jne label_87AEC8
+	codeCave[offset++] = 0x75;
+	codeCave[offset++] = 0x14; // Salto relativo che dovrà essere aggiustato
+
+	// mov eax, dword ptr ss:[ebp + 8]
+	codeCave[offset++] = 0x8B;
+	codeCave[offset++] = 0x45;
+	codeCave[offset++] = 0x08;
+
+	// mov dword ptr ds:[eax], 1
+	codeCave[offset++] = 0xC7;
+	codeCave[offset++] = 0x00;
+	*(DWORD*)(codeCave + offset) = 0x01;
+	offset += 4;
+
+	// mov dword ptr ds:[eax + 4], 0
+	codeCave[offset++] = 0xC7;
+	codeCave[offset++] = 0x40;
+	codeCave[offset++] = 0x04;
+	*(DWORD*)(codeCave + offset) = 0x00;
+	offset += 4;
+
+	// pop ebp
+	codeCave[offset++] = 0x5D;
+
+	// ret 0xC
+	codeCave[offset++] = 0xC2;
+	codeCave[offset++] = 0x0C;
+	codeCave[offset++] = 0x00;
+
+	// label_87AEC8:
+	// push esi
+	codeCave[offset++] = 0x56;
+
+	// mov esi, dword ptr ds:[edx + 0xC]
+	codeCave[offset++] = 0x8B;
+	codeCave[offset++] = 0x72;
+	codeCave[offset++] = 0x0C;
+
+	// cmp esi, dword ptr ds:[edx + 8]
+	codeCave[offset++] = 0x3B;
+	codeCave[offset++] = 0x72;
+	codeCave[offset++] = 0x08;
+
+	// jb label_87AEE6
+	codeCave[offset++] = 0x72;
+	codeCave[offset++] = 0x15; // Salto relativo che dovrà essere aggiustato
+
+	// mov eax, dword ptr ss:[ebp + 8]
+	codeCave[offset++] = 0x8B;
+	codeCave[offset++] = 0x45;
+	codeCave[offset++] = 0x08;
+
+	// pop esi
+	codeCave[offset++] = 0x5E;
+
+	// mov dword ptr ds:[eax], 1
+	codeCave[offset++] = 0xC7;
+	codeCave[offset++] = 0x00;
+	*(DWORD*)(codeCave + offset) = 0x01;
+	offset += 4;
+
+	// mov dword ptr ds:[eax + 4], 0
+	codeCave[offset++] = 0xC7;
+	codeCave[offset++] = 0x40;
+	codeCave[offset++] = 0x04;
+	*(DWORD*)(codeCave + offset) = 0x00;
+	offset += 4;
+
+	// pop ebp
+	codeCave[offset++] = 0x5D;
+
+	// ret 0xC
+	codeCave[offset++] = 0xC2;
+	codeCave[offset++] = 0x0C;
+	codeCave[offset++] = 0x00;
+
+	// label_87AEE6:
+	// mov ecx, dword ptr ds:[edx + 4]
+	codeCave[offset++] = 0x8B;
+	codeCave[offset++] = 0x4A;
+	codeCave[offset++] = 0x04;
+
+	// mov al, byte ptr ss:[ebp + 0x10]
+	codeCave[offset++] = 0x8A;
+	codeCave[offset++] = 0x45;
+	codeCave[offset++] = 0x10;
+
+	// mov byte ptr ds:[esi + ecx], al
+	codeCave[offset++] = 0x88;
+	codeCave[offset++] = 0x04;
+	codeCave[offset++] = 0x0E;
+
+	// mov eax, dword ptr ss:[ebp + 8]
+	codeCave[offset++] = 0x8B;
+	codeCave[offset++] = 0x45;
+	codeCave[offset++] = 0x08;
+
+	// inc dword ptr ds:[edx + 0xC]
+	codeCave[offset++] = 0xFF;
+	codeCave[offset++] = 0x42;
+	codeCave[offset++] = 0x0C;
+
+	// pop esi
+	codeCave[offset++] = 0x5E;
+
+	// mov dword ptr ds:[eax], 0
+	codeCave[offset++] = 0xC7;
+	codeCave[offset++] = 0x00;
+	*(DWORD*)(codeCave + offset) = 0x00;
+	offset += 4;
+
+	// mov dword ptr ds:[eax + 4], 0
+	codeCave[offset++] = 0xC7;
+	codeCave[offset++] = 0x40;
+	codeCave[offset++] = 0x04;
+	*(DWORD*)(codeCave + offset) = 0x00;
+	offset += 4;
+
+	// pop ebp
+	codeCave[offset++] = 0x5D;
+
+	// ret 0xC
+	codeCave[offset++] = 0xC2;
+	codeCave[offset++] = 0x0C;
+	codeCave[offset++] = 0x00;
+
+	return codeCave;
+}
+
 void InjectCode(uintptr_t base) {
 	Logger& l = Logger::Instance();
 	InitializeJsonFile();
@@ -549,6 +718,8 @@ void InjectCode(uintptr_t base) {
 	*unlockTargetAddress = 0xE9;
 	*reinterpret_cast<unsigned int*>(unlockTargetAddress + 1) = (reinterpret_cast<unsigned char*>(&UnlockInjectedCode) - unlockTargetAddress - 5);
 	VirtualProtect(unlockTargetAddress, 5, oldProtect, &oldProtect);
+
+	auto storageCodeOffset = InjectStorageCode(base);
 
 	std::vector<uintptr_t> keybindOffsets = {
 		0x098CFA,
@@ -577,7 +748,7 @@ void InjectCode(uintptr_t base) {
 		VirtualProtect(keybindTargetAddress, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
 
 		*keybindTargetAddress = 0xE8; // Opcode per CALL
-		uintptr_t relativeAddress = reinterpret_cast<uintptr_t>(&OriginalWriteStorageCloned) - reinterpret_cast<uintptr_t>(keybindTargetAddress) - 5;
+		uintptr_t relativeAddress = reinterpret_cast<uintptr_t>(storageCodeOffset) - reinterpret_cast<uintptr_t>(keybindTargetAddress) - 5;
 		*reinterpret_cast<uintptr_t*>(keybindTargetAddress + 1) = relativeAddress;
 
 		VirtualProtect(keybindTargetAddress, 5, oldProtect, &oldProtect);
