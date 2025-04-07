@@ -20,6 +20,11 @@ extern std::vector<FieldInfo> gCharacterStructure;
 const std::string GLOBAL_UNLOCKS_FILENAME = "scripts/saves/global_unlocks.json";
 const std::string CHARACTERS_DIR = "scripts/saves/characters/";
 const std::string ADDON_CHARACTERS_DIR = "scripts/saves/characters/addon/";
+const std::string KEYBINDS_FILENAME = "scripts/saves/keybinds.json";
+
+static int keybindWriteCurrentIndex = 0;
+
+static std::vector<int> keybindValues(17, 0);
 
 // Function to convert GlobalUnlocks to JSON
 json globalUnlocksToJson(const GlobalUnlocks& unlocks) {
@@ -396,6 +401,86 @@ uint8_t ReadByteFromJson(uint32_t offset) {
 	return byteValue;
 }
 
+void WriteKeybindToJson(uintptr_t offset, uintptr_t byteValue) {
+	Logger& l = Logger::Instance();
+	l.Get()->info("Hacky kb writing {} {}", keybindWriteCurrentIndex, byteValue);
+
+	// Salva il valore nell'array
+	keybindValues[keybindWriteCurrentIndex] = (int)byteValue;
+	keybindWriteCurrentIndex++;
+
+	// Quando raggiungiamo l'ultimo indice, scriviamo su file JSON
+	if (keybindWriteCurrentIndex >= 17) {
+		try {
+			// Creare l'oggetto JSON
+			json keybindsJson;
+
+			// Mappa dei nomi dei tasti in base all'indice
+			const std::vector<std::string> keyNames = {
+				"MOVE_LEFT", "MOVE_RIGHT", "MOVE_UP", "MOVE_DOWN", "LIGHT_ATTACK", "HEAVY_ATTACK", "USE_ITEM", "JUMP", "MAGIC", "ITEM_SELECT_BACKWARD",
+				"ITEM_SELECT_FORWARD", "PAUSE", "BLOCK", "STATS", "RETURN_HOME", "UNK_1", "UNK_2"
+			};
+
+			// Aggiungi tutti i valori al JSON
+			for (int i = 0; i < 17; i++) {
+				keybindsJson[keyNames[i]] = keybindValues[i];
+			}
+
+			// Scrivi il JSON su file
+			std::ofstream outFile(KEYBINDS_FILENAME);
+			if (outFile.is_open()) {
+				outFile << keybindsJson.dump(4); // 4 spazi di indentazione per leggibilità
+				outFile.close();
+				l.Get()->info("Keybinds saved to {}", KEYBINDS_FILENAME);
+			}
+			else {
+				l.Get()->error("Failed to open file for writing: {}", KEYBINDS_FILENAME);
+			}
+		}
+		catch (const std::exception& e) {
+			l.Get()->error("Error writing keybinds to JSON: {}", e.what());
+		}
+
+		// Reset dell'indice
+		keybindWriteCurrentIndex = 0;
+	}
+
+	l.Get()->flush();
+}
+
+// Restituisce il valore keybind dal file JSON, o un valore predefinito se non trovato
+int GetKeybindValue(const std::string& keyName, int defaultValue = 0) {
+	const std::string KEYBINDS_FILENAME = "scripts/saves/keybinds.json";
+	Logger& l = Logger::Instance();
+
+	try {
+		// Prova ad aprire il file JSON
+		std::ifstream file(KEYBINDS_FILENAME);
+		if (!file.is_open()) {
+			l.Get()->warn("Keybinds file not found: {}", KEYBINDS_FILENAME);
+			return defaultValue;
+		}
+
+		// Carica il contenuto JSON
+		nlohmann::json keybindsJson;
+		file >> keybindsJson;
+
+		// Controlla se la chiave esiste
+		if (keybindsJson.contains(keyName)) {
+			return keybindsJson[keyName].get<int>();
+		}
+		else {
+			l.Get()->warn("Key '{}' not found in keybinds file", keyName);
+			return defaultValue;
+		}
+	}
+	catch (const std::exception& e) {
+		l.Get()->error("Error reading keybind '{}': {}", keyName, e.what());
+		return defaultValue;
+	}
+}
+
+
 // The assembly code injection functions remain the same
 __declspec(naked) void WriteInjectedCode() {
 	__asm {
@@ -560,7 +645,7 @@ BYTE* InjectStorageCode(uintptr_t base) {
 	// push esi
 	codeCave[offset++] = 0x56;
 
-	// mov esi, dword ptr ds:[edx + 0xC]
+	// mov esi, dword ptr ds:[edx + 0xC] -> @param offset
 	codeCave[offset++] = 0x8B;
 	codeCave[offset++] = 0x72;
 	codeCave[offset++] = 0x0C;
@@ -571,7 +656,7 @@ BYTE* InjectStorageCode(uintptr_t base) {
 	codeCave[offset++] = 0x08;
 
 	// jb label_87AEE6
-	codeCave[offset++] = 0x72;
+	codeCave[offset++] = 0x73;
 	codeCave[offset++] = 0x15; // Salto relativo che dovrà essere aggiustato
 
 	// mov eax, dword ptr ss:[ebp + 8]
@@ -609,10 +694,39 @@ BYTE* InjectStorageCode(uintptr_t base) {
 	codeCave[offset++] = 0x4A;
 	codeCave[offset++] = 0x04;
 
-	// mov al, byte ptr ss:[ebp + 0x10]
+	// mov al, byte ptr ss:[ebp + 0x10] -> @param byteValue
 	codeCave[offset++] = 0x8A;
 	codeCave[offset++] = 0x45;
 	codeCave[offset++] = 0x10;
+
+	// Salva i registri che utilizzerai dopo
+	codeCave[offset++] = 0x51;  // push ecx
+	codeCave[offset++] = 0x56;  // push esi
+
+	// Preparazione parametri per WriteKeybindToJson
+	codeCave[offset++] = 0x0F;  // movzx eax, al
+	codeCave[offset++] = 0xB6;
+	codeCave[offset++] = 0xC0;
+	codeCave[offset++] = 0x50;  // push eax (byteValue)
+
+	// push offset (che è in esi)
+	codeCave[offset++] = 0x56;  // push esi
+
+	// Chiamata alla funzione
+	codeCave[offset++] = 0xE8;
+	// Qui devi calcolare l'offset corretto alla funzione
+	DWORD callOffset = (DWORD)((uintptr_t)WriteKeybindToJson - ((uintptr_t)(codeCave + offset) + 4));
+	*(DWORD*)(codeCave + offset) = callOffset;
+	offset += 4;
+
+	// Pulizia dello stack dopo la chiamata (2 parametri = 8 bytes)
+	codeCave[offset++] = 0x83;  // add esp, 8
+	codeCave[offset++] = 0xC4;
+	codeCave[offset++] = 0x08;
+
+	// Ripristina i registri nell'ordine inverso
+	codeCave[offset++] = 0x5E;  // pop esi
+	codeCave[offset++] = 0x59;  // pop ecx
 
 	// mov byte ptr ds:[esi + ecx], al
 	codeCave[offset++] = 0x88;
@@ -745,8 +859,20 @@ void InjectCode(uintptr_t base) {
 		VirtualProtect(resetAddress, sizeof(resetBytes), oldProtect, &oldProtect);
 	}
 
+	// JB Patch here
 	std::vector<uintptr_t> keybindStartupOffsets = {
-		0x8D7C8
+		0x8D7C8,
+		0x8D84E,
+		0x8D8CC,
+		0x8D94A,
+		0x8D9C8,
+		0x8DA18,
+		0x8DA68,
+		0x8DAB8,
+		0x8DB08,
+		0x8DB58,
+		0x8DBA8,
+		0x8DBF8
 	};
 
 	for (uintptr_t off : keybindStartupOffsets) {
@@ -756,4 +882,105 @@ void InjectCode(uintptr_t base) {
 		memcpy(reinterpret_cast<void*>(startupAddress), startupBytes, sizeof(startupBytes));
 		VirtualProtect(startupAddress, sizeof(startupBytes), oldProtect, &oldProtect);
 	}
+
+	auto storageCodeOffset = InjectStorageCode(base);
+
+	std::vector<uintptr_t> keybindWriteOffsets = {
+		0x098CFA,
+		0x098D13,
+		0x098D2C,
+		0x098D45,
+		0x098D5E,
+		0x098D77,
+		0x098D90,
+		0x098DA9,
+		0x098DC2,
+		0x098DDB,
+		0x098DF4,
+		0x098E0D,
+		0x098E26,
+		0x098E33,
+		0x098E40,
+		0x098E4D,
+		0x098E66,
+		0x098E82
+	};
+
+	for (uintptr_t off : keybindWriteOffsets) {
+		unsigned char* keybindTargetAddress = reinterpret_cast<unsigned char*>(base + off);
+		DWORD oldProtect;
+		VirtualProtect(keybindTargetAddress, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
+
+		*keybindTargetAddress = 0xE8; // Opcode per CALL
+		uintptr_t relativeAddress = reinterpret_cast<uintptr_t>(storageCodeOffset) - reinterpret_cast<uintptr_t>(keybindTargetAddress) - 5;
+		*reinterpret_cast<uintptr_t*>(keybindTargetAddress + 1) = relativeAddress;
+
+		VirtualProtect(keybindTargetAddress, 5, oldProtect, &oldProtect);
+	}
+
+	// Patching on startup
+
+	int moveLeftValue = GetKeybindValue("MOVE_LEFT", 0x25);
+	unsigned char* moveLeftAddress = reinterpret_cast<unsigned char*>(base + 0x8D7D1);
+	unsigned char moveLeftBytes[3] = { 0xB3, static_cast<unsigned char>(moveLeftValue), 0x90};
+	VirtualProtect(moveLeftAddress, sizeof(moveLeftBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(moveLeftAddress), moveLeftBytes, sizeof(moveLeftBytes));
+	VirtualProtect(moveLeftAddress, sizeof(moveLeftBytes), oldProtect, &oldProtect);
+
+	int moveRightValue = GetKeybindValue("MOVE_RIGHT", 0x27);
+	unsigned char* moveRightAddress = reinterpret_cast<unsigned char*>(base + 0x8D857);
+	unsigned char moveRightBytes[3] = { 0xB3, static_cast<unsigned char>(moveRightValue), 0x90 };
+	VirtualProtect(moveRightAddress, sizeof(moveRightBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(moveRightAddress), moveRightBytes, sizeof(moveRightBytes));
+	VirtualProtect(moveRightAddress, sizeof(moveRightBytes), oldProtect, &oldProtect);
+
+	int moveUpValue = GetKeybindValue("MOVE_UP", 0x26);
+	unsigned char* moveUpAddress = reinterpret_cast<unsigned char*>(base + 0x8D8D5);
+	unsigned char moveUpBytes[3] = { 0xB3, static_cast<unsigned char>(moveUpValue), 0x90 };
+	VirtualProtect(moveUpAddress, sizeof(moveUpBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(moveUpAddress), moveUpBytes, sizeof(moveUpBytes));
+	VirtualProtect(moveUpAddress, sizeof(moveUpBytes), oldProtect, &oldProtect);
+
+	int moveDownValue = GetKeybindValue("MOVE_DOWN", 0x28);
+	unsigned char* moveDownAddress = reinterpret_cast<unsigned char*>(base + 0x8D953);
+	unsigned char moveDownBytes[3] = { 0xB3, static_cast<unsigned char>(moveDownValue), 0x90 };
+	VirtualProtect(moveDownAddress, sizeof(moveDownBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(moveDownAddress), moveDownBytes, sizeof(moveDownBytes));
+	VirtualProtect(moveDownAddress, sizeof(moveDownBytes), oldProtect, &oldProtect);
+
+	int lightAttackValue = GetKeybindValue("LIGHT_ATTACK", 0x41);
+	unsigned char* lightAttackAddress = reinterpret_cast<unsigned char*>(base + 0x8D9D1);
+	unsigned char lightAttackBytes[3] = { 0xB3, static_cast<unsigned char>(lightAttackValue), 0x90 };
+	VirtualProtect(lightAttackAddress, sizeof(lightAttackBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(lightAttackAddress), lightAttackBytes, sizeof(lightAttackBytes));
+	VirtualProtect(lightAttackAddress, sizeof(lightAttackBytes), oldProtect, &oldProtect);
+
+	int heavyAttackValue = GetKeybindValue("HEAVY_ATTACK", 0x57);
+	unsigned char* heavyAttackAddress = reinterpret_cast<unsigned char*>(base + 0x8DA21);
+	unsigned char heavyAttackBytes[3] = { 0xB3, static_cast<unsigned char>(heavyAttackValue), 0x90 };
+	VirtualProtect(heavyAttackAddress, sizeof(heavyAttackBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(heavyAttackAddress), heavyAttackBytes, sizeof(heavyAttackBytes));
+	VirtualProtect(heavyAttackAddress, sizeof(heavyAttackBytes), oldProtect, &oldProtect);
+
+	int useItemValue = GetKeybindValue("USE_ITEM", 0x44);
+	unsigned char* useItemAddress = reinterpret_cast<unsigned char*>(base + 0x8DA71);
+	unsigned char useItemBytes[3] = { 0xB3, static_cast<unsigned char>(useItemValue), 0x90 };
+	VirtualProtect(useItemAddress, sizeof(useItemBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(useItemAddress), useItemBytes, sizeof(useItemBytes));
+	VirtualProtect(useItemAddress, sizeof(useItemBytes), oldProtect, &oldProtect);
+
+	int jumpValue = GetKeybindValue("JUMP", 0x53);
+	unsigned char* jumpAddress = reinterpret_cast<unsigned char*>(base + 0x8DAC1);
+	unsigned char jumpBytes[3] = { 0xB3, static_cast<unsigned char>(jumpValue), 0x90 };
+	VirtualProtect(jumpAddress, sizeof(jumpBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(jumpAddress), jumpBytes, sizeof(jumpBytes));
+	VirtualProtect(jumpAddress, sizeof(jumpBytes), oldProtect, &oldProtect);
+
+	// MAGIC 0x45
+	// ITEM_SELECT_BACKWARD 0x5A
+	// ITEM_SELECT_FORWARD 0x43
+	// PAUSE 0x1B 
+	// BLOCK 0x51
+	// STATS 0x41
+	// RETURN_HOME 0x53
 }
