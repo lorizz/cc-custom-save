@@ -113,6 +113,12 @@ Additionally, a solid understanding of SWF files and basic programming knowledge
 -   **Order Matching**: The order of characters in `customsave.ini` must match the order in the SWF files to prevent data from being assigned incorrectly.
     
 -   **Data Integrity**: Modifying game files carries risks. Always double-check configurations and maintain backups to prevent data loss or corruption.
+-   
+## Known Problems
+
+- **Startup Keybinds**: Everytime you open up the game you MUST reset your keybinds, since they will get resetted.
+
+- **Audio Settings**: Audio settings aren't loaded correctly from the `global_unlocks.json`, I suggest edit them directly from the file for now.
     
 
 ----------
