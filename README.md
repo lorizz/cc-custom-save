@@ -1,58 +1,120 @@
-# Custom Save - Castle Crashers ASI Mod
 
-**Custom Save** is an ASI mod for Castle Crashers that allows modders to add up to **1000 characters** into the game's memory. This mod operates independently of the Steam save file and comes with a patched `castle.exe` to remove Steam's DRM, enabling the injection of multiple ASI mods. The save file is generated upon first execution in the `scripts/saves/` folder and can be freely edited by the modder.
+# Custom Save 2.0 - Castle Crashers ASI Mod
+
+**Custom Save 2.0** is an ASI mod for _Castle Crashers_ that enhances character management by allowing the use of external save files. This enables players to have more than the default 31 characters and to customize character attributes easily through `.json` files.
 
 ## Features
-- Add up to 1000 characters in the game's memory.
-- Custom save is stored in `scripts/saves/game_data.json`.
-- Fully independent from the Steam save file.
-- Includes a patched `castle.exe` that removes Steam DRM (necessary for ASI modding).
-- Unknown bytes in the save file allow further exploration and customization by the modder.
 
-## Why the Patched `castle.exe` is Necessary
+-   **Expanded Character Slots**: Manage virtually unlimited characters beyond the default 31.
+    
+-   **Customizable Attributes**: Add or modify character attributes beyond the standard ones (e.g., adding a "critRate" attribute).
+    
+-   **External Save Management**: Character data is stored in easily editable `.json` files.
+    
+-   **Organized Save Structure**: Default characters are stored in the `saves/characters` folder, while additional characters are in `saves/characters/addon`.
+    
 
-The patched `castle.exe` is **crucial** for Custom Save and other ASI mods to function properly. By default, Castle Crashers' Steam version includes DRM (Digital Rights Management) that restricts the injection of multiple ASI (DLL) mods. This DRM blocks modifications that interact with the game's executable.
+## Important Disclaimer
 
-By using the patched `castle.exe`, the Steam DRM is removed, allowing the injection of multiple ASI mods like **Custom Save**. This patched executable doesn't harm your game in any way—it only removes the DRM, leaving the core game unchanged. The mod allows you to freely mod the game while still enjoying the original Castle Crashers experience.
+**⚠️ WARNING: Before proceeding, it is **crucial** to back up your original save files.**
 
-> **IMPORTANT:** To launch the game with the mod enabled, you must run it from the `start.bat` file provided in this mod package.
+The original save files are located at:
 
-## Installation
+```
+<Steam-folder>/userdata/<user-id>/204360/Remote
 
-1. **Backup** the original `castle.exe` by copying it to a safe location.
-2. Download and unzip the mod files into the game's main folder.
-3. On the first run, the mod will generate a save file at `scripts/saves/game_data.json` containing the original 31 characters with default values.
+```
 
-## How It Works
+Additionally, a solid understanding of SWF files and basic programming knowledge are **highly recommended** to effectively configure and utilize this mod.
 
-Custom Save modifies the `WriteStorage` and `ReadStorage` functions of the game executable to read from a custom save file instead of the Steam save file.
+## Installation Guide
 
-### Default Save File
+1.  **Backup Original Save Files**: As emphasized above, ensure you have a backup of your original save files.
+    
+2.  **Download and Extract the Mod**: Obtain the Custom Save 2.0 mod files and extract them into your _Castle Crashers_ game directory.
+    
+3.  **Configure `customsave.ini`**: This file defines the data structure and additional characters.
+    
+    -   **Character Data Structure**: Specify the sequence and byte size of each attribute. For example:
+        
+        ```ini
+        ; Where follows the structure: fieldName, byteSize
+        [CharacterDataStructure]
+        unlockStatus,1
+        level,1
+        xp,4
+        weapon,1
+        pet,1
+        stats,4
+        normalLevelUnlocks,3
+        consumableItems,3
+        nonConsumableItems,1
+        money,4
+        insaneModeStoreUnlocks,1
+        insaneLevelUnlocks,3
+        skullStatus,1
+        dugUpItems,1
+        princessKisses,1
+        arenaWins,2
+        unknown,16
+        
+        ```
+        
+        If you add a new attribute (e.g., `critRate`), append it in both the `[CharacterDataStructure]` section and the corresponding SWF file, maintaining the same order.
+        
+    -   **Addon Characters**: List additional characters to be added:
+        
+        ```ini
+        ; Where each params are separated by the comma (,) and are in this order: id, startingWeaponId, isInitiallyUnlocked
+        [AddonCharacters]
+        testGuy1,1,true
+        testGuy2,1,true
+        ```
+        
+        Ensure that the order here matches the order in the modified SWF files to prevent data mismatches.
+        
+4.  **Modify `main.swf`**: Adjust the `f_InitSaveSystem()` function to reflect the new data structure and character count:
+    
+    ```actionscript
+    function f_InitSaveSystem()
+    {
+       save_data_info = new Object();
+       save_data_info.char_offset = 64;
+       save_data_info.char_size = <NEW_BYTE_SIZE>; // Update to match the total byte size of the new data structure
+       save_data_info.num_items = 128;
+       save_data_info.num_animals = 32;
+       save_data_info.num_levels = 64;
+       save_data_info.num_relics = 8;
+       save_data_info.num_items_expansion = 64;
+       save_data_info.num_characters = <TOTAL_CHARACTER_COUNT>; // 31 + number of addon characters
+       relic_offset = 40;
+       weapon_offset = 50;
+    }
+    
+    ```
+    
+    -   **Update `char_size`**: Set this to the total byte size of your updated character data structure.
+        
+    -   **Update `num_characters`**: Set this to `31 +` the number of addon characters you've added.
+        
+5.  **Adjust Character Data Handling**: In the `f_LoadCharacterData()` and `f_FlushSaveData()` functions, ensure that `ReadStorage` and `WriteStorage` calls align with the sequence defined in `customsave.ini`. For example, if you've added a `critRate` attribute under the `stats` property in the `customsave.ini`:
+    
+    ```actionscript
+    WriteStorage(_loc5_, _loc4_.agility);
+    WriteStorage(_loc5_, _loc4_.critRate); // Ensure this follows the same order as in customsave.ini
+    
+    ```
+    
 
-When first initialized, the file `game_data.json` is generated with the original 31 characters. If you want to add more characters:
+## Configuration Notes
 
-1. Add the new characters below the existing ones in the `game_data.json` file.
-2. The order of characters is **important** since the game loads them sequentially. **Do not** change the order of the original characters as this can break the graphics and unlock logic.
+-   **Attribute Consistency**: When adding new attributes, ensure they are consistently defined in `customsave.ini`, the SWF files, and the game's data handling functions.
+    
+-   **Order Matching**: The order of characters in `customsave.ini` must match the order in the SWF files to prevent data from being assigned incorrectly.
+    
+-   **Data Integrity**: Modifying game files carries risks. Always double-check configurations and maintain backups to prevent data loss or corruption.
+    
 
-### Setting Total Characters
+----------
 
-After adding your custom characters, it is **crucial** to update the `main.swf` file to reflect the total number of characters. 
-
-If you have added new characters, you need to modify the value of `save_data_info.num_characters` in the `main.swf` file to match the new total. For example, if you now have 40 characters, ensure `num_characters` is set to 40.
-
-> **IMPORTANT:** Setting `save_data_info.num_characters` correctly is essential to avoid game-breaking issues.
-
-## JSON Data Structure
-
-- All values in the JSON are written in **decimal** format. The mod will automatically convert them to **hexadecimal** for the game.
-- The unlock status is represented as:
-  - `0` = **locked**
-  - `128` = **unlocked** (`128` = `0x80` in hexadecimal)
-
-## Notes
-
-Some bytes in the save file are still unknown and may offer additional modding opportunities. Further exploration is encouraged for advanced modders.
-
----
-
-Enjoy expanding your Castle Crashers roster with **Custom Save**! For any issues or inquiries, feel free to open an issue or contribute to the project.
+By following this guide, you can expand and customize your _Castle Crashers_ experience with new characters and attributes. Remember to proceed with caution and ensure all configurations are consistent to maintain game stability.
