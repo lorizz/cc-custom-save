@@ -212,91 +212,90 @@ void WriteByteToJson(uint32_t offset, uint8_t byteValue) {
 	else {
 		uint32_t totalBytes = getTotalCharacterDataBytes(gCharacterStructure);
 		uint32_t totalCharactersBytes = (defaultCharacters.size() + addonCharacters.size()) * totalBytes;
-		if (offset < 64 + totalCharactersBytes) {
-			uint32_t characterOffset = offset - 64;
-			size_t defaultTotalBytes = defaultCharacters.size() * totalBytes;
-			if (characterOffset < defaultTotalBytes) {
-				size_t characterIndex = characterOffset / totalBytes;
-				size_t fieldAbsoluteOffset = characterOffset % totalBytes;
+		uint32_t characterOffset = offset - 64;
 
-				std::string characterId = defaultCharacters[characterIndex].getId();
-				std::string filename = CHARACTERS_DIR + characterId + ".json";
+		size_t defaultTotalBytes = defaultCharacters.size() * totalBytes;
+		if (characterOffset < defaultTotalBytes) {
+			size_t characterIndex = characterOffset / totalBytes;
+			size_t fieldAbsoluteOffset = characterOffset % totalBytes;
 
-				std::ifstream inputFile(filename);
-				if (!inputFile.is_open()) {
-					throw std::runtime_error("Unable to open file: " + filename);
-				}
-				json charData;
-				inputFile >> charData;
-				inputFile.close();
+			std::string characterId = defaultCharacters[characterIndex].getId();
+			std::string filename = CHARACTERS_DIR + characterId + ".json";
 
-				std::string fieldName;
-				size_t internalIndex;
-				if (getFieldInfoFromOffset(gCharacterStructure, fieldAbsoluteOffset, fieldName, internalIndex)) {
-					if (charData[fieldName].is_array()) {
-						charData[fieldName][internalIndex] = byteValue;
-					}
-					else {
-						charData[fieldName] = byteValue;
-					}
+			std::ifstream inputFile(filename);
+			if (!inputFile.is_open()) {
+				throw std::runtime_error("Unable to open file: " + filename);
+			}
+			json charData;
+			inputFile >> charData;
+			inputFile.close();
+
+			std::string fieldName;
+			size_t internalIndex;
+			if (getFieldInfoFromOffset(gCharacterStructure, fieldAbsoluteOffset, fieldName, internalIndex)) {
+				if (charData[fieldName].is_array()) {
+					charData[fieldName][internalIndex] = byteValue;
 				}
 				else {
-					throw std::runtime_error("Offset out of CharacterData bounds");
+					charData[fieldName] = byteValue;
 				}
-
-				std::ofstream outputFile(filename);
-				outputFile << charData.dump() << std::endl;
-				outputFile.close();
 			}
 			else {
-				// Addon characters (invariato)
-				uint32_t addonOffset = characterOffset - defaultTotalBytes;
-				size_t addonTotalBytes = addonCharacters.size() * totalBytes;
-				if (addonOffset >= addonTotalBytes) {
-					throw std::runtime_error("Offset out of bounds for both default and addon characters");
-				}
-				size_t characterIndex = addonOffset / totalBytes;
-				size_t fieldAbsoluteOffset = addonOffset % totalBytes;
+				throw std::runtime_error("Offset out of CharacterData bounds");
+			}
 
-				std::string characterId = addonCharacters[characterIndex].getId();
-				std::string filename = ADDON_CHARACTERS_DIR + characterId + ".json";
+			std::ofstream outputFile(filename);
+			outputFile << charData.dump() << std::endl;
+			outputFile.close();
+		}
+		else {
+			// Addon characters (invariato)
+			uint32_t addonOffset = characterOffset - defaultTotalBytes;
+			size_t addonTotalBytes = addonCharacters.size() * totalBytes;
+			if (addonOffset >= addonTotalBytes) {
+				throw std::runtime_error("Offset out of bounds for both default and addon characters");
+			}
+			size_t characterIndex = addonOffset / totalBytes;
+			size_t fieldAbsoluteOffset = addonOffset % totalBytes;
 
-				std::ifstream inputFile(filename);
-				if (!inputFile.is_open()) {
-					throw std::runtime_error("Unable to open file: " + filename);
-				}
-				json charData;
-				inputFile >> charData;
-				inputFile.close();
+			std::string characterId = addonCharacters[characterIndex].getId();
+			std::string filename = ADDON_CHARACTERS_DIR + characterId + ".json";
 
-				std::string fieldName;
-				size_t internalIndex;
-				if (getFieldInfoFromOffset(gCharacterStructure, fieldAbsoluteOffset, fieldName, internalIndex)) {
-					if (charData[fieldName].is_array()) {
-						charData[fieldName][internalIndex] = byteValue;
-					}
-					else {
-						charData[fieldName] = byteValue;
-					}
+			std::ifstream inputFile(filename);
+			if (!inputFile.is_open()) {
+				throw std::runtime_error("Unable to open file: " + filename);
+			}
+			json charData;
+			inputFile >> charData;
+			inputFile.close();
+
+			std::string fieldName;
+			size_t internalIndex;
+			if (getFieldInfoFromOffset(gCharacterStructure, fieldAbsoluteOffset, fieldName, internalIndex)) {
+				if (charData[fieldName].is_array()) {
+					charData[fieldName][internalIndex] = byteValue;
 				}
 				else {
-					throw std::runtime_error("Offset out of CharacterData bounds for addon character");
+					charData[fieldName] = byteValue;
 				}
-
-				std::ofstream outputFile(filename);
-				outputFile << charData.dump() << std::endl;
-				outputFile.close();
 			}
+			else {
+				throw std::runtime_error("Offset out of CharacterData bounds for addon character");
+			}
+
+			std::ofstream outputFile(filename);
+			outputFile << charData.dump() << std::endl;
+			outputFile.close();
 		}
 	}
 }
 
 uint8_t ReadByteFromJson(uint32_t offset) {
 	Logger& l = Logger::Instance();
+	l.Get()->info("Reading byte {}: ", offset);
+	l.Get()->flush();
 
 	uint8_t byteValue = 0;
-	l.Get()->info("Reading offset {}", offset);
-	l.Get()->flush();
 	if (offset < 64) {
 		// Read from GlobalUnlocks
 		std::ifstream inputFile(GLOBAL_UNLOCKS_FILENAME);
@@ -361,10 +360,14 @@ uint8_t ReadByteFromJson(uint32_t offset) {
 			if (addonOffset >= addonTotalBytes) {
 				throw std::runtime_error("Offset out of bounds for both default and addon characters");
 			}
+
 			size_t characterIndex = addonOffset / totalBytes;
 			size_t fieldAbsoluteOffset = addonOffset % totalBytes;
 
 			std::string characterId = addonCharacters[characterIndex].getId();
+			l.Get()->info("Reading addo character {}, {}", characterIndex, characterId);
+			l.Get()->flush();
+
 			std::string filename = ADDON_CHARACTERS_DIR + characterId + ".json";
 
 			std::ifstream inputFile(filename);
@@ -481,49 +484,6 @@ __declspec(naked) void UnlockInjectedCode() {
 		mov dword ptr ds : [eax + 4] , 0
 		pop ebp
 		ret 0x0C
-	}
-}
-
-__declspec(naked) void OriginalWriteStorageCloned()
-{
-	__asm
-	{
-		push ebp
-		mov ebp, esp
-		mov ecx, dword ptr ss : [ebp + 0xC]
-		mov eax, dword ptr ds : [0xAA8598] // TODO: This must be copied from (base + 0x098CEC)
-		mov edx, dword ptr ds : [eax + ecx * 4 + 0x14]
-		cmp byte ptr ds : [edx], 0
-		jne label_87AEC8
-		mov eax, dword ptr ss : [ebp + 8]
-		mov dword ptr ds : [eax], 1
-		mov dword ptr ds : [eax + 4], 0
-		pop ebp
-		ret 0xC
-
-		label_87AEC8 :
-			push esi
-			mov esi, dword ptr ds : [edx + 0xC]
-			cmp esi, dword ptr ds : [edx + 8]
-			jb label_87AEE6
-			mov eax, dword ptr ss : [ebp + 8]
-			pop esi
-			mov dword ptr ds : [eax], 1
-			mov dword ptr ds : [eax + 4], 0
-			pop ebp
-			ret 0xC
-
-		label_87AEE6 :
-			mov ecx, dword ptr ds : [edx + 4]
-			mov al, byte ptr ss : [ebp + 0x10]
-			mov byte ptr ds : [esi + ecx], al
-			mov eax, dword ptr ss : [ebp + 8]
-			inc dword ptr ds : [edx + 0xC]
-			pop esi
-			mov dword ptr ds : [eax], 0
-			mov dword ptr ds : [eax + 4], 0
-			pop ebp
-			ret 0xC
 	}
 }
 
@@ -718,39 +678,82 @@ void InjectCode(uintptr_t base) {
 	*unlockTargetAddress = 0xE9;
 	*reinterpret_cast<unsigned int*>(unlockTargetAddress + 1) = (reinterpret_cast<unsigned char*>(&UnlockInjectedCode) - unlockTargetAddress - 5);
 	VirtualProtect(unlockTargetAddress, 5, oldProtect, &oldProtect);
-
-	auto storageCodeOffset = InjectStorageCode(base);
-
+	
 	std::vector<uintptr_t> keybindOffsets = {
-		0x098CFA,
-		0x098D13,
-		0x098D2C,
-		0x098D45,
-		0x098D5E,
-		0x098D77,
-		0x098D90,
-		0x098DA9,
-		0x098DC2,
-		0x098DDB,
-		0x098DF4,
-		0x098E0D,
-		0x098E26,
-		0x098E33,
-		0x098E40,
-		0x098E4D,
-		0x098E66,
-		0x098E82
+		0x8D33B
 	};
 
 	for (uintptr_t off : keybindOffsets) {
-		unsigned char* keybindTargetAddress = reinterpret_cast<unsigned char*>(base + off);
-		DWORD oldProtect;
-		VirtualProtect(keybindTargetAddress, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
+		unsigned char* readKeybindAddress = reinterpret_cast<unsigned char*>(base + off);
+		unsigned char readKeybindBytes[7] = { 0xC7, 0x41, 0x0C, 0x99, 0x99, 0x09, 0x00 };
+		VirtualProtect(readKeybindAddress, sizeof(readKeybindBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+		memcpy(reinterpret_cast<void*>(readKeybindAddress), readKeybindBytes, sizeof(readKeybindBytes));
+		VirtualProtect(readKeybindAddress, sizeof(readKeybindBytes), oldProtect, &oldProtect);
+	}
 
-		*keybindTargetAddress = 0xE8; // Opcode per CALL
-		uintptr_t relativeAddress = reinterpret_cast<uintptr_t>(storageCodeOffset) - reinterpret_cast<uintptr_t>(keybindTargetAddress) - 5;
-		*reinterpret_cast<uintptr_t*>(keybindTargetAddress + 1) = relativeAddress;
+	std::vector<uintptr_t> keybindOffsets2 = {
+		0x8D7AD
+	};
 
-		VirtualProtect(keybindTargetAddress, 5, oldProtect, &oldProtect);
+	for (uintptr_t off : keybindOffsets2) {
+		unsigned char* readKeybindAddress = reinterpret_cast<unsigned char*>(base + off);
+		unsigned char readKeybindBytes[7] = { 0xC7, 0x47, 0x0C, 0x99, 0x99, 0x09, 0x00 };
+		VirtualProtect(readKeybindAddress, sizeof(readKeybindBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+		memcpy(reinterpret_cast<void*>(readKeybindAddress), readKeybindBytes, sizeof(readKeybindBytes));
+		VirtualProtect(readKeybindAddress, sizeof(readKeybindBytes), oldProtect, &oldProtect);
+	}
+
+	std::vector<uintptr_t> keybindOffsets3 = {
+		0x98CDF,
+		0x99052
+	};
+
+	for (uintptr_t off : keybindOffsets3) {
+		unsigned char* readKeybindAddress = reinterpret_cast<unsigned char*>(base + off);
+		unsigned char readKeybindBytes[7] = { 0xC7, 0x40, 0x0C, 0x99, 0x99, 0x09, 0x00 };
+		VirtualProtect(readKeybindAddress, sizeof(readKeybindBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+		memcpy(reinterpret_cast<void*>(readKeybindAddress), readKeybindBytes, sizeof(readKeybindBytes));
+		VirtualProtect(readKeybindAddress, sizeof(readKeybindBytes), oldProtect, &oldProtect);
+	}
+
+	std::vector<uintptr_t> keybindResetOffsets = {
+		0x991D8,
+		0x9924A,
+		0x992BC,
+		0x9932E,
+		0x993A0,
+		0x99412,
+		0x99484,
+		0x994F6,
+		0x99568,
+		0x995DA,
+		0x9964C,
+		0x996BE,
+		0x99730,
+		0x997A8,
+		0x9981A,
+		0x9988C,
+		0x99904,
+		0x99976
+	};
+
+	for (uintptr_t off : keybindResetOffsets) {
+		unsigned char* resetAddress = reinterpret_cast<unsigned char*>(base + off);
+		unsigned char resetBytes[2] = { 0x75, 0x19 };
+		VirtualProtect(resetAddress, sizeof(resetBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+		memcpy(reinterpret_cast<void*>(resetAddress), resetBytes, sizeof(resetBytes));
+		VirtualProtect(resetAddress, sizeof(resetBytes), oldProtect, &oldProtect);
+	}
+
+	std::vector<uintptr_t> keybindStartupOffsets = {
+		0x8D7C8
+	};
+
+	for (uintptr_t off : keybindStartupOffsets) {
+		unsigned char* startupAddress = reinterpret_cast<unsigned char*>(base + off);
+		unsigned char startupBytes[2] = { 0x73, 0x04 };
+		VirtualProtect(startupAddress, sizeof(startupBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+		memcpy(reinterpret_cast<void*>(startupAddress), startupBytes, sizeof(startupBytes));
+		VirtualProtect(startupAddress, sizeof(startupBytes), oldProtect, &oldProtect);
 	}
 }

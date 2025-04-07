@@ -65,8 +65,8 @@ inline std::vector<FieldInfo> readCharacterDataStructure(const std::string& file
                 size_t len = std::stoul(value);
                 FieldInfo info{ key, len, cumulativeOffset };
                 structure.push_back(info);
-                l.Get()->info("Parsed field: '{}' with length {} at offset {}.", key, len, cumulativeOffset);
                 cumulativeOffset += len;
+                l.Get()->info("Parsed field: '{}' with length {} at offset {}.", key, len, cumulativeOffset);
                 l.Get()->flush();
             }
             catch (const std::exception& e) {
@@ -96,8 +96,6 @@ inline size_t getTotalCharacterDataBytes(const std::vector<FieldInfo>& structure
 inline bool getFieldInfoFromOffset(const std::vector<FieldInfo>& structure, size_t offset, std::string& fieldName, size_t& internalIndex) {
     Logger& l = Logger::Instance();
 	for (const auto& field : structure) {
-        l.Get()->info("Field: {}, Length: {}, Offset: {}", field.name, field.length, field.offset);
-        l.Get()->flush();
 		if (offset >= field.offset && offset < field.offset + field.length) {
 			fieldName = field.name;
 			internalIndex = offset - field.offset;

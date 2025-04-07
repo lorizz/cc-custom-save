@@ -63,6 +63,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*lpReserved*/)
         if ((base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base)) == 0x4B88FD ||
             (base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base)) == 0x730310) // Modded is 0x4B88FD, Original is 0x730310
         {
+            //MessageBoxA(NULL, "DEBUG PAUSE", "Castle Crashers Custom Save", MB_ICONINFORMATION);
             l.Get()->info("Correct EXE version detected. Creating initialization thread. Base address 0x{:02}", base);
             HANDLE hThread = CreateThread(NULL, 0, InitThread, reinterpret_cast<LPVOID>(base), 0, NULL);
             if (hThread)
