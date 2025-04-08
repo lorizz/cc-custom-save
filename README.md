@@ -1,7 +1,7 @@
 
-# Custom Save 2.0 - Castle Crashers ASI Mod
+# Custom Save 2.2 - Castle Crashers ASI Mod
 
-**Custom Save 2.0** is an ASI mod for _Castle Crashers_ that enhances character management by allowing the use of external save files. This enables players to have more than the default 31 characters and to customize character attributes easily through `.json` files.
+**Custom Save 2.2** is an ASI mod for _Castle Crashers_ that enhances character management by allowing the use of external save files. This enables players to have more than the default 31 characters and to customize character attributes easily through `.json` files.
 
 ## Features
 
@@ -115,8 +115,6 @@ Additionally, a solid understanding of SWF files and basic programming knowledge
 -   **Data Integrity**: Modifying game files carries risks. Always double-check configurations and maintain backups to prevent data loss or corruption.
 -   
 ## Known Problems
-
-- **Startup Keybinds**: Everytime you open up the game you MUST reset your keybinds, since they will get resetted.
 
 - **Audio Settings**: Audio settings aren't loaded correctly from the `global_unlocks.json`, I suggest edit them directly from the file for now.
     
