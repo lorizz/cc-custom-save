@@ -24,7 +24,7 @@ const std::string KEYBINDS_FILENAME = "scripts/saves/keybinds.json";
 
 static int keybindWriteCurrentIndex = 0;
 
-static std::vector<int> keybindValues(17, 0);
+static std::vector<int> keybindValues(18, 0);
 
 // Function to convert GlobalUnlocks to JSON
 json globalUnlocksToJson(const GlobalUnlocks& unlocks) {
@@ -403,14 +403,14 @@ uint8_t ReadByteFromJson(uint32_t offset) {
 
 void WriteKeybindToJson(uintptr_t offset, uintptr_t byteValue) {
 	Logger& l = Logger::Instance();
-	l.Get()->info("Hacky kb writing {} {}", keybindWriteCurrentIndex, byteValue);
+	l.Get()->info("WriteKeybindToJson called with offset {} byteValue {}", offset, byteValue);
 
 	// Salva il valore nell'array
 	keybindValues[keybindWriteCurrentIndex] = (int)byteValue;
 	keybindWriteCurrentIndex++;
 
 	// Quando raggiungiamo l'ultimo indice, scriviamo su file JSON
-	if (keybindWriteCurrentIndex >= 17) {
+	if (keybindWriteCurrentIndex >= 18) {
 		try {
 			// Creare l'oggetto JSON
 			json keybindsJson;
@@ -418,11 +418,12 @@ void WriteKeybindToJson(uintptr_t offset, uintptr_t byteValue) {
 			// Mappa dei nomi dei tasti in base all'indice
 			const std::vector<std::string> keyNames = {
 				"MOVE_LEFT", "MOVE_RIGHT", "MOVE_UP", "MOVE_DOWN", "LIGHT_ATTACK", "HEAVY_ATTACK", "USE_ITEM", "JUMP", "MAGIC", "ITEM_SELECT_BACKWARD",
-				"ITEM_SELECT_FORWARD", "PAUSE", "BLOCK", "STATS", "RETURN_HOME", "UNK_1", "UNK_2"
+				"ITEM_SELECT_FORWARD", "PAUSE", "BLOCK", "UNK_2", "RETURN_HOME", "UNK_1", "STATS", "UNK_3"
 			};
 
 			// Aggiungi tutti i valori al JSON
-			for (int i = 0; i < 17; i++) {
+			for (int i = 0; i < 18; i++) {
+				l.Get()->info("Writing to file {} with {}", keyNames[i], keybindValues[i]);
 				keybindsJson[keyNames[i]] = keybindValues[i];
 			}
 
@@ -595,10 +596,14 @@ BYTE* InjectStorageCode(uintptr_t base) {
 	codeCave[offset++] = 0x4D;
 	codeCave[offset++] = 0x0C;
 
-	// mov eax, dword ptr ds:[0xAA8598]
-	DWORD addressValue = *(DWORD*)(base + 0x098CC8);
+	// Copia l'opcode "mov eax, [memoria]" che è A1
+	*(BYTE*)(codeCave + offset) = 0xA1;
+	offset += 1;
+
+	// Copia l'indirizzo a cui punta l'istruzione
+	DWORD addressValue = *(DWORD*)(base + 0x98CC8 + 1); // +1 per saltare l'opcode
 	*(DWORD*)(codeCave + offset) = addressValue;
-	offset += 5;
+	offset += 4;
 
 	// mov edx, dword ptr ds:[eax + ecx * 4 + 0x14]
 	codeCave[offset++] = 0x8B;
@@ -872,7 +877,13 @@ void InjectCode(uintptr_t base) {
 		0x8DB08,
 		0x8DB58,
 		0x8DBA8,
-		0x8DBF8
+		0x8DBF8,
+		0x8DCBB,
+		0x8DD0B,
+		0x8DD61,
+		0x8DDB1,
+		0x8DE01,
+		0x8DE57
 	};
 
 	for (uintptr_t off : keybindStartupOffsets) {
@@ -976,11 +987,73 @@ void InjectCode(uintptr_t base) {
 	memcpy(reinterpret_cast<void*>(jumpAddress), jumpBytes, sizeof(jumpBytes));
 	VirtualProtect(jumpAddress, sizeof(jumpBytes), oldProtect, &oldProtect);
 
-	// MAGIC 0x45
-	// ITEM_SELECT_BACKWARD 0x5A
-	// ITEM_SELECT_FORWARD 0x43
-	// PAUSE 0x1B 
-	// BLOCK 0x51
-	// STATS 0x41
-	// RETURN_HOME 0x53
+	int magicValue = GetKeybindValue("MAGIC", 0x45);
+	unsigned char* magicAddress = reinterpret_cast<unsigned char*>(base + 0x8DB11);
+	unsigned char magicBytes[3] = { 0xB3, static_cast<unsigned char>(magicValue), 0x90 };
+	VirtualProtect(magicAddress, sizeof(magicBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(magicAddress), magicBytes, sizeof(magicBytes));
+	VirtualProtect(magicAddress, sizeof(magicBytes), oldProtect, &oldProtect);
+
+	int itemSelectBackwardValue = GetKeybindValue("ITEM_SELECT_BACKWARD", 0x5A);
+	unsigned char* itemSelectBackwardAddress = reinterpret_cast<unsigned char*>(base + 0x8DB61);
+	unsigned char itemSelectBackwardBytes[3] = { 0xB3, static_cast<unsigned char>(itemSelectBackwardValue), 0x90 };
+	VirtualProtect(itemSelectBackwardAddress, sizeof(itemSelectBackwardBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(itemSelectBackwardAddress), itemSelectBackwardBytes, sizeof(itemSelectBackwardBytes));
+	VirtualProtect(itemSelectBackwardAddress, sizeof(itemSelectBackwardBytes), oldProtect, &oldProtect);
+
+	int itemSelectForwardValue = GetKeybindValue("ITEM_SELECT_FORWARD", 0x43);
+	unsigned char* itemSelectForwardAddress = reinterpret_cast<unsigned char*>(base + 0x8DBB1);
+	unsigned char itemSelectForwardBytes[3] = { 0xB3, static_cast<unsigned char>(itemSelectForwardValue), 0x90 };
+	VirtualProtect(itemSelectForwardAddress, sizeof(itemSelectForwardBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(itemSelectForwardAddress), itemSelectForwardBytes, sizeof(itemSelectForwardBytes));
+	VirtualProtect(itemSelectForwardAddress, sizeof(itemSelectForwardBytes), oldProtect, &oldProtect);
+
+	int pauseValue = GetKeybindValue("PAUSE", 0x1B);
+	unsigned char* pauseAddress = reinterpret_cast<unsigned char*>(base + 0x8DC01);
+	unsigned char pauseBytes[3] = { 0xB3, static_cast<unsigned char>(pauseValue), 0x90 };
+	VirtualProtect(pauseAddress, sizeof(pauseBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(pauseAddress), pauseBytes, sizeof(pauseBytes));
+	VirtualProtect(pauseAddress, sizeof(pauseBytes), oldProtect, &oldProtect);
+
+	int blockValue = GetKeybindValue("BLOCK", 0x51);
+	unsigned char* blockAddress = reinterpret_cast<unsigned char*>(base + 0x8DCC4);
+	unsigned char blockBytes[3] = { 0xB3, static_cast<unsigned char>(blockValue), 0x90 };
+	VirtualProtect(blockAddress, sizeof(blockBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(blockAddress), blockBytes, sizeof(blockBytes));
+	VirtualProtect(blockAddress, sizeof(blockBytes), oldProtect, &oldProtect);
+
+	int unk2Value = GetKeybindValue("UNK_2", 0x41);
+	unsigned char* unk2Address = reinterpret_cast<unsigned char*>(base + 0x8DD14);
+	unsigned char unk2Bytes[3] = { 0xB3, static_cast<unsigned char>(unk2Value), 0x90 };
+	VirtualProtect(unk2Address, sizeof(unk2Bytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(unk2Address), unk2Bytes, sizeof(unk2Bytes));
+	VirtualProtect(unk2Address, sizeof(unk2Bytes), oldProtect, &oldProtect);
+
+	int returnHomeValue = GetKeybindValue("RETURN_HOME", 0x53);
+	unsigned char* returnHomeAddress = reinterpret_cast<unsigned char*>(base + 0x8DD6A);
+	unsigned char returnHomeBytes[3] = { 0xB3, static_cast<unsigned char>(returnHomeValue), 0x90 };
+	VirtualProtect(returnHomeAddress, sizeof(returnHomeBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(returnHomeAddress), returnHomeBytes, sizeof(returnHomeBytes));
+	VirtualProtect(returnHomeAddress, sizeof(returnHomeBytes), oldProtect, &oldProtect);
+
+	int unk1Value = GetKeybindValue("UNK_1", 0x44);
+	unsigned char* unk1Address = reinterpret_cast<unsigned char*>(base + 0x8DDBA);
+	unsigned char unk1Bytes[3] = { 0xB3, static_cast<unsigned char>(unk1Value), 0x90 };
+	VirtualProtect(unk1Address, sizeof(unk1Bytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(unk1Address), unk1Bytes, sizeof(unk1Bytes));
+	VirtualProtect(unk1Address, sizeof(unk1Bytes), oldProtect, &oldProtect);
+
+	int statsValue = GetKeybindValue("STATS", 0x09);
+	unsigned char* statsAddress = reinterpret_cast<unsigned char*>(base + 0x8DE0A);
+	unsigned char statsBytes[3] = { 0xB3, static_cast<unsigned char>(statsValue), 0x90 };
+	VirtualProtect(statsAddress, sizeof(statsBytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(statsAddress), statsBytes, sizeof(statsBytes));
+	VirtualProtect(statsAddress, sizeof(statsBytes), oldProtect, &oldProtect);
+
+	int unk3Value = GetKeybindValue("UNK_3", 0x48);
+	unsigned char* unk3Address = reinterpret_cast<unsigned char*>(base + 0x8DE60);
+	unsigned char unk3Bytes[3] = { 0xB3, static_cast<unsigned char>(unk3Value), 0x90 };
+	VirtualProtect(unk3Address, sizeof(unk3Bytes), PAGE_EXECUTE_READWRITE, &oldProtect);
+	memcpy(reinterpret_cast<void*>(unk3Address), unk3Bytes, sizeof(unk3Bytes));
+	VirtualProtect(unk3Address, sizeof(unk3Bytes), oldProtect, &oldProtect);
 }
