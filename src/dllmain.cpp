@@ -1,0 +1,84 @@
+#include "stdafx.h"
+#include "Core/CustomSaveManager.h"
+#include "Overrides/RegisterOverrides.h"
+#include "Hooks/AttachSkinGraphicHook.h"
+#include "Hooks/InitCharDataTableHook.h"
+#include <HookCrashersAPI.h>
+#include <windows.h>
+
+using HookCrashers::API::Client;
+
+static void GetCustomSaveDataHandler(int paramCount, HC_SWFArgument** swfArgs, HC_SWFReturn* swfReturn) {
+    if (paramCount < 1) {
+        HookCrashers::API::ReturnHelper::SetFailure(swfReturn);
+        return;
+    }
+    std::string property = HookCrashers::API::SWFArgumentReader::GetString(swfArgs[0]);
+    int returnValue = -1;
+
+    if (property == "char_offset") returnValue = CustomSave::CustomSaveManager::NUM_GLOBAL_BYTES;
+    else if (property == "char_size") returnValue = CustomSave::CustomSaveManager::NUM_CHARACTER_BYTES;
+    else if (property == "num_items") returnValue = 128;
+    else if (property == "num_animals") returnValue = 32;
+    else if (property == "num_levels") returnValue = 64;
+    else if (property == "num_relics") returnValue = 8;
+    else if (property == "num_items_expansion") returnValue = 64;
+    else if (property == "num_characters_legacy") returnValue = CustomSave::CustomSaveManager::NUM_BASE_CHARACTERS_LEGACY;
+    else if (property == "num_characters_noaddons") returnValue = CustomSave::CustomSaveManager::NUM_BASE_CHARACTERS;
+    else if (property == "num_characters_safe") returnValue = CustomSave::CustomSaveManager::TOTAL_GAME_CHARACTERS;
+    else if (property == "num_characters_addons") returnValue = CustomSave::CustomSaveManager::NUM_WORKSHOP_CHARACTERS;
+    else if (property == "num_characters") returnValue = CustomSave::CustomSaveManager::TOTAL_STREAMED_CHARACTERS;
+
+    HookCrashers::API::ReturnHelper::SetInt(swfReturn, returnValue);
+}
+
+extern "C" {
+    __declspec(dllexport) const char* GetModName() { return "Custom Save"; }
+    __declspec(dllexport) const char* GetModAuthor() { return "ilVonBurza"; }
+    __declspec(dllexport) const char* GetModVersion() { return "2.0"; }
+
+    __declspec(dllexport) bool InitializeMod() {
+        Client::LogInfo("[CustomSave] Initializing via Mod Loader...");
+
+        char dllPath[MAX_PATH] = { 0 };
+        HMODULE hMod = GetModuleHandleA("CustomSave.asi");
+        if (!hMod) {
+            Client::LogError("[CustomSave] Failed to get module handle for CustomSave.asi!");
+            return false;
+        }
+        GetModuleFileNameA(hMod, dllPath, MAX_PATH);
+
+        std::string modFullPath = dllPath;
+        size_t lastSlash = modFullPath.find_last_of("\\/");
+        std::string modDirectory = (lastSlash != std::string::npos) ? modFullPath.substr(0, lastSlash + 1) : "";
+
+        if (modDirectory.empty()) {
+            Client::LogError("[CustomSave] Could not determine mod directory path!");
+            return false;
+        }
+
+        std::string saveFilePath = modDirectory;
+        Client::LogInfo("[CustomSave] Save file path set to: " + saveFilePath);
+
+        if (!CustomSave::CustomSaveManager::getInstance().initialize(saveFilePath)) {
+            Client::LogError("[CustomSave] CustomSaveManager initialization failed!");
+            return false;
+        }
+
+        CustomSave::RegisterStorageOverrides();
+        CustomSave::SetupAttachSkinGraphicHook(HookCrashers::API::Client::GetModuleBase());
+        CustomSave::SetupInitCharDataTableHook(HookCrashers::API::Client::GetModuleBase());
+
+        HookCrashers::API::Client::RegisterCustomSWF(50100, "GetCustomSaveData", GetCustomSaveDataHandler);
+
+        Client::LogInfo("[CustomSave] Successfully initialized.");
+        return true;
+    }
+}
+
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(hModule);
+    }
+    return TRUE;
+}

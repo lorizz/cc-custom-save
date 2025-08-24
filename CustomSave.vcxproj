@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -17,6 +17,30 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Core\CustomSaveManager.cpp" />
+    <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\Hooks\AttachSkinGraphicHook.cpp" />
+    <ClCompile Include="src\Hooks\InitCharDataTableHook.cpp" />
+    <ClCompile Include="src\pch.cpp" />
+    <ClCompile Include="src\Overrides\RegisterOverrides.cpp" />
+    <ClCompile Include="src\stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Core\CustomSaveManager.h" />
+    <ClInclude Include="src\Data\CharacterData.h" />
+    <ClInclude Include="src\Data\GlobalData.h" />
+    <ClInclude Include="src\framework.h" />
+    <ClInclude Include="src\Hooks\AttachSkinGraphicHook.h" />
+    <ClInclude Include="src\Hooks\InitCharDataTableHook.h" />
+    <ClInclude Include="src\pch.h" />
+    <ClInclude Include="src\Overrides\RegisterOverrides.h" />
+    <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -105,7 +129,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\External\json\;$(SolutionDir)\External\spdlog\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\HookCrashers\include;$(SolutionDir)\External\json\;E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\External\detours\include;$(SolutionDir)\External\spdlog\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -113,12 +137,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\External\detours\lib.X86;E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>HookCrashers.lib;detours.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)*.asi" "E:\SteamLibrary\steamapps\common\CastleCrashers\scripts"  /y</Command>
+      <Command>copy "$(TargetDir)CustomSave.asi" "E:\SteamLibrary\steamapps\common\CastleCrashers\mods"  /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -155,26 +178,6 @@
       <EnableUAC>false</EnableUAC>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="addon_characters.h" />
-    <ClInclude Include="character_data.h" />
-    <ClInclude Include="default_character_data.h" />
-    <ClInclude Include="dynamic_character_data.h" />
-    <ClInclude Include="logger.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="storage_hooks.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="utils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="addon_characters.cpp" />
-    <ClCompile Include="character_data.cpp" />
-    <ClCompile Include="default_character_data.cpp" />
-    <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="logger.cpp" />
-    <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="storage_hooks.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

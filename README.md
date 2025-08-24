@@ -1,126 +1,119 @@
+﻿# Custom Save (Castle Crashers Mod)
 
-# Custom Save 2.0 - Castle Crashers ASI Mod
+**Custom Save** is an **ASI mod** for *Castle Crashers* that replaces the vanilla `cc_save.dat` binary system with a fully structured **JSON-based save system**.
+It is built on top of the [HookCrashers API](https://github.com/lorizz/hookcrashers).
 
-**Custom Save 2.0** is an ASI mod for _Castle Crashers_ that enhances character management by allowing the use of external save files. This enables players to have more than the default 31 characters and to customize character attributes easily through `.json` files.
+---
 
-## Features
+## ✨ Features
 
--   **Expanded Character Slots**: Manage virtually unlimited characters beyond the default 31.
-    
--   **Customizable Attributes**: Add or modify character attributes beyond the standard ones (e.g., adding a "critRate" attribute).
-    
--   **External Save Management**: Character data is stored in easily editable `.json` files.
-    
--   **Organized Save Structure**: Default characters are stored in the `saves/characters` folder, while additional characters are in `saves/characters/addon`.
-    
+* Save files are now structured in **JSON** format instead of raw binary.
+* Characters are organized into folders:
 
-## Important Disclaimer
+  * **base/** → Default Castle Crashers characters (up to *Painter JR*).
+  * **workshop/** → Workshop characters (IDs 1–10).
+  * **addon/** → Custom user-defined characters.
+* **No limit** on the number of base characters: you can add new ones after *Painter JR*.
+* A new file `globalUnlocks.json` represents the first 64 bytes of the original save and can be freely edited.
+* Introduces a new function for SWF files:
+  **GetCustomSaveData(string param)** → Dynamically returns save parameters such as number of characters, items, animals, etc.
 
-**⚠️ WARNING: Before proceeding, it is **crucial** to back up your original save files.**
+⚠️ Currently supported only on the **New Graphic version** of Castle Crashers, and requires the **Painter Boss DLC**.
 
-The original save files are located at:
+---
+
+## 📥 Installation
+
+1. Download the mod files.
+2. Place `CustomSave.asi` into your **Castle Crashers/mods/** folder.
+3. Modify your **SWF files** (e.g. `main.swf`) by replacing the `f_InitSaveSystem()` function as explained below.
+
+---
+
+## 📂 Save Structure
+
+After installation, the new save data will be located in:
+
+* **globalUnlocks.json** → Contains the first 64 bytes of the original save.
+* **base/** → Characters from `greenKnight` to `painterJr`.
+* **workshop/** → Characters 1–10.
+* **addon/** → User-created characters.
+
+Folder layout:
 
 ```
-<Steam-folder>/userdata/<user-id>/204360/Remote
-
+mods/CustomSave/
+├── globalUnlocks.json
+├── base/
+│   └── [base characters].json
+├── workshop/
+│   └── [workshop characters].json
+└── addon/
+    └── [custom characters].json
 ```
 
-Additionally, a solid understanding of SWF files and basic programming knowledge are **highly recommended** to effectively configure and utilize this mod.
+---
 
-## Installation Guide
+## ➕ Adding a New Character
 
-1.  **Backup Original Save Files**: As emphasized above, ensure you have a backup of your original save files.
-    
-2.  **Download and Extract the Mod**: Obtain the Custom Save 2.0 mod files and extract them into your _Castle Crashers_ game directory.
-    
-3.  **Configure `customsave.ini`**: This file defines the data structure and additional characters.
-    
-    -   **Character Data Structure**: Specify the sequence and byte size of each attribute. For example:
-        
-        ```ini
-        ; Where follows the structure: fieldName, byteSize
-        [CharacterDataStructure]
-        unlockStatus,1
-        level,1
-        xp,4
-        weapon,1
-        pet,1
-        stats,4
-        normalLevelUnlocks,3
-        consumableItems,3
-        nonConsumableItems,1
-        money,4
-        insaneModeStoreUnlocks,1
-        insaneLevelUnlocks,3
-        skullStatus,1
-        dugUpItems,1
-        princessKisses,1
-        arenaWins,2
-        unknown,16
-        
-        ```
-        
-        If you add a new attribute (e.g., `critRate`), append it in both the `[CharacterDataStructure]` section and the corresponding SWF file, maintaining the same order.
-        
-    -   **Addon Characters**: List additional characters to be added:
-        
-        ```ini
-        ; Where each params are separated by the comma (,) and are in this order: id, startingWeaponId, isInitiallyUnlocked
-        [AddonCharacters]
-        testGuy1,1,true
-        testGuy2,1,true
-        ```
-        
-        Ensure that the order here matches the order in the modified SWF files to prevent data mismatches.
-        
-4.  **Modify `main.swf`**: Adjust the `f_InitSaveSystem()` function to reflect the new data structure and character count:
-    
-    ```actionscript
-    function f_InitSaveSystem()
-    {
-       save_data_info = new Object();
-       save_data_info.char_offset = 64;
-       save_data_info.char_size = <NEW_BYTE_SIZE>; // Update to match the total byte size of the new data structure
-       save_data_info.num_items = 128;
-       save_data_info.num_animals = 32;
-       save_data_info.num_levels = 64;
-       save_data_info.num_relics = 8;
-       save_data_info.num_items_expansion = 64;
-       save_data_info.num_characters = <TOTAL_CHARACTER_COUNT>; // 31 + number of addon characters
-       relic_offset = 40;
-       weapon_offset = 50;
-    }
-    
-    ```
-    
-    -   **Update `char_size`**: Set this to the total byte size of your updated character data structure.
-        
-    -   **Update `num_characters`**: Set this to `31 +` the number of addon characters you've added.
-        
-5.  **Adjust Character Data Handling**: In the `f_LoadCharacterData()` and `f_FlushSaveData()` functions, ensure that `ReadStorage` and `WriteStorage` calls align with the sequence defined in `customsave.ini`. For example, if you've added a `critRate` attribute under the `stats` property in the `customsave.ini`:
-    
-    ```actionscript
-    WriteStorage(_loc5_, _loc4_.agility);
-    WriteStorage(_loc5_, _loc4_.critRate); // Ensure this follows the same order as in customsave.ini
-    
-    ```
-    
+1. Open `CustomSave.ini`.
+2. Add your custom character definition under `[AddonCharacters]`.
 
-## Configuration Notes
+Example:
 
--   **Attribute Consistency**: When adding new attributes, ensure they are consistently defined in `customsave.ini`, the SWF files, and the game's data handling functions.
-    
--   **Order Matching**: The order of characters in `customsave.ini` must match the order in the SWF files to prevent data from being assigned incorrectly.
-    
--   **Data Integrity**: Modifying game files carries risks. Always double-check configurations and maintain backups to prevent data loss or corruption.
--   
-## Known Problems
+```
+; Structure => id_name,id_weapon,id_pet,initially_unlocked
+; Example:
+; customChar,32,0,true
+; lockedChar,51,2,false
 
-- **Startup Keybinds**: Everytime you open up the game you MUST reset your keybinds, since they will get resetted.
+[AddonCharacters]
+myCustomChar,45,1,true
+```
 
-- **Audio Settings**: Audio settings aren't loaded correctly from the `global_unlocks.json`, I suggest edit them directly from the file for now.
-    
+3. Modify your `.swf` files (`lobby.swf`, `main.swf`, etc.) to insert the new character frame after *Painter JR*.
 
-----------
+---
 
-By following this guide, you can expand and customize your _Castle Crashers_ experience with new characters and attributes. Remember to proceed with caution and ensure all configurations are consistent to maintain game stability.
+## 🛠️ Required SWF Modification
+
+To make the save system work dynamically, you must replace the original `f_InitSaveSystem()` in your SWFs with this version:
+
+```actionscript
+function f_InitSaveSystem()
+{
+   save_data_info = new Object();
+   save_data_info.char_offset = GetCustomSaveData("char_offset");
+   save_data_info.char_size = GetCustomSaveData("char_size");
+   save_data_info.num_items = GetCustomSaveData("num_items");
+   save_data_info.num_animals = GetCustomSaveData("num_animals");
+   save_data_info.num_levels = GetCustomSaveData("num_levels");
+   save_data_info.num_relics = GetCustomSaveData("num_relics");
+   save_data_info.num_items_expansion = GetCustomSaveData("num_items_expansion");
+   save_data_info.num_characters_legacy = GetCustomSaveData("num_characters_legacy");
+   save_data_info.num_characters_noaddons = GetCustomSaveData("num_characters_noaddons");
+   save_data_info.num_characters_safe = GetCustomSaveData("num_characters_safe");
+   save_data_info.num_character_addons = GetCustomSaveData("num_characters_addons");
+   save_data_info.num_characters = GetCustomSaveData("num_characters");
+   relic_offset = 40;
+   weapon_offset = 50;
+}
+```
+
+This ensures that the game dynamically handles characters, items, animals, and other save data without needing to hardcode new values every time.
+
+---
+
+## 🔮 Future Plans
+
+* Support for multiple save slots (switch between a clean run and your main save).
+* Online database for sharing and downloading saves.
+* Automatic character loading via files (no more manual SWF edits).
+
+---
+
+## 📌 Requirements
+
+* [HookCrashers API](https://github.com/lorizz/hookcrashers)
+* Castle Crashers (*New Graphic version*)
+* Painter Boss DLC
