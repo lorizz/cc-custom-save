@@ -35,7 +35,7 @@ static void GetCustomSaveDataHandler(int paramCount, HC_SWFArgument** swfArgs, H
 extern "C" {
     __declspec(dllexport) const char* GetModName() { return "Custom Save"; }
     __declspec(dllexport) const char* GetModAuthor() { return "ilVonBurza"; }
-    __declspec(dllexport) const char* GetModVersion() { return "2.0"; }
+    __declspec(dllexport) const char* GetModVersion() { return "3.0"; }
 
     __declspec(dllexport) bool InitializeMod() {
         Client::LogInfo("[CustomSave] Initializing via Mod Loader...");
