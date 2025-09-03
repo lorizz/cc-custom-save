@@ -1,5 +1,5 @@
 #include "AttachSkinGraphicHook.h" // Crea un nuovo file per questo hook
-#include <HookCrashersAPI.h> 
+#include <HookCrashers.h> 
 #include <detours.h>
 #include <windows.h>
 #include "../Core/CustomSaveManager.h"
@@ -18,9 +18,10 @@ namespace CustomSave {
 
     void __fastcall DetouredAttachSkinGraphic(void* thisPtr, void* /* edxUnused */, int* pMovieClip, int contextId)
     {
+		HookCrashers::LogInfo("[GRAPHIC HOOK] DetouredAttachSkinGraphic called.");
         if (!hasBeenShiftedThisFrame)
         {
-            HookCrashers::API::Client::LogInfo("First call this frame. Performing array shift...");
+            HookCrashers::LogInfo("First call this frame. Performing array shift...");
 
             void** ui_char_array = (void**)((char*)thisPtr + UI_CHAR_ARRAY_OFFSET);
 
@@ -28,7 +29,7 @@ namespace CustomSave {
 
             if (num_new_base_chars > 0)
             {
-                HookCrashers::API::Client::LogInfo("Shifting workshop characters by " + std::to_string(num_new_base_chars) + " slots.");
+                HookCrashers::LogInfo("Shifting workshop characters by " + std::to_string(num_new_base_chars) + " slots.");
 
                 for (int i = CustomSaveManager::TOTAL_STREAMED_CHARACTERS - 1; i >= CustomSave::CustomSaveManager::NUM_BASE_CHARACTERS; --i)
                 {
@@ -49,7 +50,7 @@ namespace CustomSave {
                         ui_char_array[insertion_index] = ui_char_array[0]; 
                     }
                 }
-                HookCrashers::API::Client::LogInfo("Inserted " + std::to_string(num_new_base_chars) + " placeholders for new base characters.");
+                HookCrashers::LogInfo("Inserted " + std::to_string(num_new_base_chars) + " placeholders for new base characters.");
             }
 
             hasBeenShiftedThisFrame = true;
@@ -62,35 +63,35 @@ namespace CustomSave {
 
     void ResetGraphicShiftState() {
         if (hasBeenShiftedThisFrame) {
-            HookCrashers::API::Client::LogInfo("[GRAPHIC HOOK] Resetting shift state.");
+            HookCrashers::LogInfo("[GRAPHIC HOOK] Resetting shift state.");
             hasBeenShiftedThisFrame = false;
         }
     }
 
     bool SetupAttachSkinGraphicHook(uintptr_t moduleBase) {
-        HookCrashers::API::Client::LogInfo("Setting up AttachSkinGraphic hook...");
+        HookCrashers::LogInfo("Setting up AttachSkinGraphic hook...");
 
         uintptr_t targetAddress = moduleBase + AttachSkinGraphic_OFFSET;
         g_originalFunction = reinterpret_cast<OriginalAttachSkinGraphic_t>(targetAddress);
 
         if (!g_originalFunction) {
-            HookCrashers::API::Client::LogError("Target address for AttachSkinGraphic is invalid.");
+            HookCrashers::LogError("Target address for AttachSkinGraphic is invalid.");
             return false;
         }
 
         DetourTransactionBegin();
         DetourUpdateThread(GetCurrentThread());
         if (DetourAttach(&(PVOID&)g_originalFunction, DetouredAttachSkinGraphic) != NO_ERROR) {
-            HookCrashers::API::Client::LogError("DetourAttach for AttachSkinGraphic failed");
+            HookCrashers::LogError("DetourAttach for AttachSkinGraphic failed");
             DetourTransactionAbort();
             return false;
         }
         if (DetourTransactionCommit() != NO_ERROR) {
-            HookCrashers::API::Client::LogError("DetourTransactionCommit for AttachSkinGraphic failed");
+            HookCrashers::LogError("DetourTransactionCommit for AttachSkinGraphic failed");
             return false;
         }
 
-        HookCrashers::API::Client::LogInfo("AttachSkinGraphic hook attached successfully!");
+        HookCrashers::LogInfo("AttachSkinGraphic hook attached successfully!");
         return true;
     }
 }

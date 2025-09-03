@@ -23,6 +23,7 @@
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\Hooks\AttachSkinGraphicHook.cpp" />
     <ClCompile Include="src\Hooks\InitCharDataTableHook.cpp" />
+    <ClCompile Include="src\Hooks\MainMenuBuilderHook.cpp" />
     <ClCompile Include="src\pch.cpp" />
     <ClCompile Include="src\Overrides\RegisterOverrides.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
@@ -34,6 +35,7 @@
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\Hooks\AttachSkinGraphicHook.h" />
     <ClInclude Include="src\Hooks\InitCharDataTableHook.h" />
+    <ClInclude Include="src\Hooks\MainMenuBuilderHook.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\Overrides\RegisterOverrides.h" />
     <ClInclude Include="src\stdafx.h" />

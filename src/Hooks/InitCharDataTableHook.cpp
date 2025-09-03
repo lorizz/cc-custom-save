@@ -1,5 +1,5 @@
 #include "InitCharDataTableHook.h"
-#include <HookCrashersAPI.h> 
+#include <HookCrashers.h> 
 #include <detours.h>
 #include <windows.h>
 #include "../Core/CustomSaveManager.h"
@@ -21,29 +21,29 @@ namespace CustomSave {
     }
 
     bool SetupInitCharDataTableHook(uintptr_t moduleBase) {
-        HookCrashers::API::Client::LogInfo("Setting up InitCharDataTable hook...");
+        HookCrashers::LogInfo("Setting up InitCharDataTable hook...");
 
         uintptr_t targetAddress = moduleBase + InitCharDataTable_OFFSET;
         g_originalFunction = reinterpret_cast<OriginalInitCharDataTable_t>(targetAddress);
 
         if (!g_originalFunction) {
-            HookCrashers::API::Client::LogError("Target address for InitCharDataTable is invalid.");
+            HookCrashers::LogError("Target address for InitCharDataTable is invalid.");
             return false;
         }
 
         DetourTransactionBegin();
         DetourUpdateThread(GetCurrentThread());
         if (DetourAttach(&(PVOID&)g_originalFunction, DetouredInitCharDataTable) != NO_ERROR) {
-            HookCrashers::API::Client::LogError("DetourAttach for InitCharDataTable failed");
+            HookCrashers::LogError("DetourAttach for InitCharDataTable failed");
             DetourTransactionAbort();
             return false;
         }
         if (DetourTransactionCommit() != NO_ERROR) {
-            HookCrashers::API::Client::LogError("DetourTransactionCommit for InitCharDataTable failed");
+            HookCrashers::LogError("DetourTransactionCommit for InitCharDataTable failed");
             return false;
         }
 
-        HookCrashers::API::Client::LogInfo("InitCharDataTable hook attached successfully!");
+        HookCrashers::LogInfo("InitCharDataTable hook attached successfully!");
         return true;
     }
 }

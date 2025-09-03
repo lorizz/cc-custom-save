@@ -23,7 +23,7 @@ struct CharacterData {
     uint32_t gold;
     uint8_t insane_mode;
     std::array<uint8_t, 3> insane_levels_bitflags;
-    uint8_t skill;
+    uint8_t skull;
     uint8_t shovel_items;
     uint8_t princess_kisses;
     std::array<uint16_t, 4> arena_wins;
@@ -47,7 +47,7 @@ namespace nlohmann {
                 {"beefies", c.beefies}, {"relics_bitflag", c.relics_bitflag},
                 {"gold", c.gold}, {"insane_mode", c.insane_mode},
                 {"insane_levels_bitflags", c.insane_levels_bitflags},
-                {"skill", c.skill}, {"shovel_items", c.shovel_items},
+                {"skull", c.skull}, {"shovel_items", c.shovel_items},
                 {"princess_kisses", c.princess_kisses}, {"arena_wins", c.arena_wins},
                 {"arena_losses", c.arena_losses}, {"arena_points", c.arena_points}
             };
@@ -71,7 +71,7 @@ namespace nlohmann {
             c.gold = j.value("gold", 0u);
             c.insane_mode = j.value("insane_mode", (uint8_t)0);
             if (j.contains("insane_levels_bitflags")) j.at("insane_levels_bitflags").get_to(c.insane_levels_bitflags);
-            c.skill = j.value("skill", (uint8_t)0);
+            c.skull = j.value("skull", (uint8_t)0);
             c.shovel_items = j.value("shovel_items", (uint8_t)0);
             c.princess_kisses = j.value("princess_kisses", (uint8_t)0);
             if (j.contains("arena_wins")) j.at("arena_wins").get_to(c.arena_wins);
