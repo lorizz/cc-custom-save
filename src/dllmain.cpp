@@ -4,10 +4,10 @@
 #include "Hooks/AttachSkinGraphicHook.h"
 #include "Hooks/InitCharDataTableHook.h"
 #include "Hooks/MainMenuBuilderHook.h"
-#include <HookCrashers.h> // L'unico header che ti serve
+#include "Patcher/Patches.h"
+#include <HookCrashers.h>
 #include <windows.h>
 
-// La callback ora usa le nuove classi helper per chiarezza e sicurezza.
 static void GetCustomSaveDataHandler(int paramCount, HC_SWFArgument** swfArgs, HC_SWFReturn* swfReturn) {
     HookCrashers::SWF::ArgsReader args(paramCount, swfArgs);
     HookCrashers::SWF::ReturnValue ret(swfReturn);
@@ -33,23 +33,15 @@ static void GetCustomSaveDataHandler(int paramCount, HC_SWFArgument** swfArgs, H
     else if (property == "num_characters_addons") returnValue = CustomSave::CustomSaveManager::NUM_WORKSHOP_CHARACTERS;
     else if (property == "num_characters") returnValue = CustomSave::CustomSaveManager::TOTAL_STREAMED_CHARACTERS;
 
-	HookCrashers::LogInfo("[GetCustomSaveData] Property requested: " + property + " => " + std::to_string(returnValue));
-
     ret.SetInt(returnValue);
 }
 
 extern "C" {
-    // Queste esportazioni rimangono invariate, sono per il mod loader
     __declspec(dllexport) const char* GetModName() { return "Custom Save"; }
     __declspec(dllexport) const char* GetModAuthor() { return "ilVonBurza"; }
-    __declspec(dllexport) const char* GetModVersion() { return "3.0"; }
+    __declspec(dllexport) const char* GetModVersion() { return "3.2"; }
 
-    // La funzione di inizializzazione ora usa le chiamate dirette di HookCrashers
     __declspec(dllexport) bool InitializeMod() {
-        // La chiamata a HookCrashers::Initialize() dovrebbe essere fatta dal Mod Loader stesso.
-        // Se non lo fa, dovresti aggiungerla qui. Assumiamo che il loader la gestisca.
-        // if (!HookCrashers::IsInitialized()) { /* Errore, HookCrashers non è caricato */ return false; }
-
         HookCrashers::LogInfo("[CustomSave] Initializing via Mod Loader...");
 
         char dllPath[MAX_PATH] = { 0 };
@@ -77,17 +69,16 @@ extern "C" {
             return false;
         }
 
-        // Chiamate alle funzioni di setup
         CustomSave::RegisterStorageOverrides();
 
         uintptr_t moduleBase = HookCrashers::GetModuleBase();
+        CustomSave::ApplyPatches();
         CustomSave::SetupAttachSkinGraphicHook(moduleBase);
         CustomSave::SetupInitCharDataTableHook(moduleBase);
         if (CustomSave::CustomSaveManager::getInstance().isFirstTimeSetupNeeded()) {
-            CustomSave::SetupMainMenuBuilderHook(moduleBase); // This crashes
+            CustomSave::SetupMainMenuBuilderHook(moduleBase);
         }
 
-        // Registrazione della funzione custom SWF
         HookCrashers::RegisterCustomSWF(50100, "GetCustomSaveData", GetCustomSaveDataHandler);
 
         HookCrashers::LogInfo("[CustomSave] Successfully initialized.");
@@ -95,7 +86,6 @@ extern "C" {
     }
 }
 
-// DllMain rimane invariato
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hModule);

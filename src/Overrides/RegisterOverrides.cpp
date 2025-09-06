@@ -327,7 +327,7 @@ namespace CustomSave {
             HookCrashers::LogError("[CustomSave] Failed to register WriteStorage override!");
         }
 
-        if (HookCrashers::RegisterOverride(SWF_ID_IS_CHARACTER_UNLOCKED_FOR_PLAYER, IsCharacterUnlockedForPlayerOverride)) {
+        /*if (HookCrashers::RegisterOverride(SWF_ID_IS_CHARACTER_UNLOCKED_FOR_PLAYER, IsCharacterUnlockedForPlayerOverride)) {
             HookCrashers::LogInfo("[CustomSave] IsCharacterUnlockedForPlayer override registered (ID: 0xC4).");
         }
         else {
@@ -353,7 +353,7 @@ namespace CustomSave {
         }
         else {
             HookCrashers::LogError("[Overrides] FAILED to register LobbyTryReadySkins override (0xE7)!");
-        }
+        }*/
 
         HookCrashers::LogInfo("[CustomSave] Storage override registration complete.");
     }
