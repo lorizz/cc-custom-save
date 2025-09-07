@@ -29,7 +29,7 @@ namespace CustomSave {
 		HookCrashers::PatchBytes(0x8DC63 + 2, { (uint8_t)(CustomSaveManager::TOTAL_STREAMED_CHARACTERS + 1) }); // Default 73 (0x49)
 
 		// InitCharDataTable
-		HookCrashers::PatchBytes(0x83C40 + 1, { (uint8_t)(0x124 + (CustomSaveManager::NUM_BASE_CHARACTERS - 32) * 4), 0x01, 0x00, 0x00 }); // 0x124 + (num_addon_chars * 4)
+		//HookCrashers::PatchBytes(0x83C40 + 1, { (uint8_t)(0x124 + (CustomSaveManager::NUM_BASE_CHARACTERS - 32) * 4), 0x01, 0x00, 0x00 }); // 0x124 + (num_addon_chars * 4)
 		HookCrashers::PatchBytes(0x83CFB + 2, { (uint8_t)(CustomSaveManager::NUM_BASE_CHARACTERS + 1) }); // Default 33 (0x21)
 		HookCrashers::PatchBytes(0x83D10 + 2, { (uint8_t)(-CustomSaveManager::NUM_BASE_CHARACTERS) }); // Default - 32 (0xE0)
 		HookCrashers::PatchBytes(0x83F6A + 2, { (uint8_t)(CustomSaveManager::TOTAL_STREAMED_CHARACTERS + 1) }); // Default 73 (0x49)
