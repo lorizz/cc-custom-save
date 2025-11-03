@@ -11,7 +11,7 @@ constexpr int WORKSHOP_CHAR_COUNT = 10;
 constexpr uintptr_t UI_CHAR_ARRAY_OFFSET = 0x11A8;
 
 namespace CustomSave {
-    constexpr uintptr_t AttachSkinGraphic_OFFSET = 0x8C820;
+    constexpr uintptr_t AttachSkinGraphic_OFFSET = 0x8D340;
     using OriginalAttachSkinGraphic_t = void(__thiscall*)(void* thisPtr, int* pMovieClip, int contextId);
     static OriginalAttachSkinGraphic_t g_originalFunction = nullptr;
 

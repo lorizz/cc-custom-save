@@ -42,25 +42,25 @@ namespace CustomSave {
     static uintptr_t g_pOriginalBigDataBlock = 0;
     static bool g_bMenuHookActive = false;
 
-    constexpr uintptr_t MAIN_MENU_BUILDER_OFFSET = 0x1417C0;
-    constexpr uintptr_t SET_MENU_STATE_OFFSET = 0x1299A0;
-    constexpr uintptr_t LOAD_SYMBOL_OFFSET = 0x152B20;
-    constexpr uintptr_t PREPARE_STRING_OBJECT_OFFSET = 0x2EC30;
-    constexpr uintptr_t FINALIZE_AND_ADD_ELEMENT_OFFSET = 0x14F860;
-    constexpr uintptr_t ALLOCATE_DATA_OFFSET = 0xDD530;
-    constexpr uintptr_t CREATE_UI_ELEMENT = 0x151360;
-    constexpr uintptr_t UNKNOWN_DISPATCHER_OFFSET = 0x143C40;
-    constexpr uintptr_t RENDER_SCENE_OFFSET = 0xF4EA0;
+    constexpr uintptr_t MAIN_MENU_BUILDER_OFFSET = 0x1420E0;
+    constexpr uintptr_t SET_MENU_STATE_OFFSET = 0x12A2B0;
+    constexpr uintptr_t LOAD_SYMBOL_OFFSET = 0x1534A0;
+    constexpr uintptr_t PREPARE_STRING_OBJECT_OFFSET = 0x2EE80;
+    constexpr uintptr_t FINALIZE_AND_ADD_ELEMENT_OFFSET = 0x1501C0;
+    constexpr uintptr_t ALLOCATE_DATA_OFFSET = 0xDDDE0;
+    constexpr uintptr_t CREATE_UI_ELEMENT = 0x151CC0;
+    constexpr uintptr_t UNKNOWN_DISPATCHER_OFFSET = 0x144590;
+    constexpr uintptr_t RENDER_SCENE_OFFSET = 0xF5730;
 
-    constexpr uintptr_t RENDER_PTR_OFFSET_1 = 0x38E198;
-    constexpr uintptr_t RENDER_PTR_OFFSET_2 = 0x230790;
-    constexpr uintptr_t FRAME_OFFSET_1 = 0x35E078;
+    constexpr uintptr_t RENDER_PTR_OFFSET_1 = 0x38E284;
+    constexpr uintptr_t RENDER_PTR_OFFSET_2 = 0x230AC0;
+    constexpr uintptr_t FRAME_OFFSET_1 = 0x35E160;
     static void* ptrRenderOffset1 = nullptr;
     static void* ptrRenderOffset2 = nullptr;
     static void* ptrFrameOffset1 = nullptr;
     static void* ptrFrameSelectDefault = nullptr;
 
-    constexpr uintptr_t IS_LEFT_KEY_PRESSED_OFFSET = 0x14E9E0;
+    constexpr uintptr_t IS_LEFT_KEY_PRESSED_OFFSET = 0x14F340;
 
     constexpr size_t HANDLER_SIZE = 0x20C;
     constexpr size_t ORIGINAL_HANDLER_COUNT = 46;

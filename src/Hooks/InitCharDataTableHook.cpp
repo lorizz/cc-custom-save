@@ -5,7 +5,7 @@
 #include "../Core/CustomSaveManager.h"
 
 namespace CustomSave {
-    constexpr uintptr_t InitCharDataTable_OFFSET = 0x83C10;
+    constexpr uintptr_t InitCharDataTable_OFFSET = 0x84730;
     constexpr uintptr_t CHAR_DATA_TABLE_OFFSET = 0x11A8;
 
     using OriginalInitCharDataTable_t = void(__thiscall*)(void* thisPtr, char param1);

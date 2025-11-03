@@ -222,7 +222,7 @@ namespace CustomSave {
                 }
             }
             else {
-                if (HookCrashers::Native::CallNative<char>(Natives::IsCharDLC, characterId) == 0) {
+                if (HookCrashers::Native::CallNative<char>(Natives::IsDLCOwned, characterId) == 0) {
                     if (characterId < (CustomSaveManager::NUM_BASE_CHARACTERS + 1)) {
                         void* playerObj = HookCrashers::GetPlayerObject(playerIndex);
                         bool isLocalMp = (HookCrashers::Native::CallNative<char>(Natives::IsLocalMultiplayer) != 0);
@@ -268,7 +268,7 @@ namespace CustomSave {
             bool isLobbyActive = isOnline ? true : (HookCrashers::Native::CallNative<char>(Natives::IsInCharSelect) != 0);
 
             if (HookCrashers::Native::CallNative<char>(Natives::IsCharacterAvailableInGameMode, characterId) != 0) {
-                if (!isLobbyActive || !isOnline || HookCrashers::Native::CallNative<char>(Natives::IsCharDLC, characterId) != 0) {
+                if (!isLobbyActive || !isOnline || HookCrashers::Native::CallNative<char>(Natives::IsDLCOwned, characterId) != 0) {
                     if (characterId >= CustomSaveManager::NUM_BASE_CHARACTERS) {
                         void* currentPlayer = HookCrashers::GetPlayerObject(playerIndex);
                         if (!currentPlayer) { ret.SetBool(false); return; }
