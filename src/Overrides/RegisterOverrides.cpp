@@ -67,8 +67,34 @@ namespace CustomSave {
             success = true;
         }
         else if (paramCount == 2) { // (playerPort, value) - sequential write
-            int value = args.GetInt(1);
-            saveManager.writeByteToGameBuffer(s_current_write_offset, static_cast<uint8_t>(value));
+
+            uint8_t value_to_write = 0;
+
+            // Calcoliamo l'offset relativo all'interno del blocco dei personaggi
+            int relative_offset = s_current_write_offset - CustomSaveManager::NUM_GLOBAL_BYTES;
+
+            // Verifichiamo se siamo all'interno del blocco dati dei personaggi
+            if (relative_offset >= 0 && (relative_offset / CustomSaveManager::NUM_CHARACTER_BYTES) < CustomSaveManager::TOTAL_STREAMED_CHARACTERS) {
+                // Calcoliamo l'offset all'interno della struttura del singolo personaggio (0-47)
+                int offset_in_char_struct = relative_offset % CustomSaveManager::NUM_CHARACTER_BYTES;
+
+                // IL BYTE DEL LIVELLO È IL SECONDO, QUINDI A OFFSET 1
+                if (offset_in_char_struct == 1) {
+                    // Stiamo scrivendo il livello! Leggiamo il valore come float e arrotondiamo.
+                    float level_value_float = args.GetFloat(1);
+                    value_to_write = static_cast<uint8_t>(std::round(level_value_float));
+                }
+                else {
+                    // Non è il byte del livello, usa la logica standard
+                    value_to_write = static_cast<uint8_t>(args.GetInt(1));
+                }
+            }
+            else {
+                // Non siamo nel blocco dei personaggi, usa la logica standard
+                value_to_write = static_cast<uint8_t>(args.GetInt(1));
+            }
+
+            saveManager.writeByteToGameBuffer(s_current_write_offset, value_to_write);
             s_current_write_offset++;
             success = true;
         }

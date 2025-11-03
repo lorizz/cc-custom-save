@@ -33,6 +33,7 @@ namespace CustomSave {
         bool isFirstTimeSetupNeeded() const;
         void markFirstTimeSetupAsComplete();
 
+
         void triggerOriginalSaveImport();
         void declineOriginalSaveImport();
 
@@ -41,6 +42,7 @@ namespace CustomSave {
         uint8_t readByteFromGameBuffer(size_t offset);
         void writeByteToGameBuffer(size_t offset, uint8_t value);
         const CustomCharacterEntry& getCharacterEntry(size_t index) const;
+        size_t getBufferSize() const { return m_gameSaveBuffer.size(); }
 
     private:
         CustomSaveManager();

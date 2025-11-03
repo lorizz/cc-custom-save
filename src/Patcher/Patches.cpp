@@ -43,6 +43,11 @@ namespace CustomSave {
 		HookCrashers::PatchBytes(0x8CB39 + 2, { (uint8_t)(CustomSaveManager::TOTAL_STREAMED_CHARACTERS + 1) }); // Default 73 (0x49)
 		HookCrashers::PatchBytes(0x8CB63 + 2, { (uint8_t)(CustomSaveManager::NUM_BASE_CHARACTERS + 1) }); // Default 33 (0x21)
 
+		// GetCharacterGameCompletedForPlayer
+		HookCrashers::PatchBytes(0x102B54 + 2, { (uint8_t)(-(CustomSaveManager::NUM_BASE_CHARACTERS + CustomSaveManager::NUM_WORKSHOP_CHARACTERS)) });
+		HookCrashers::PatchBytes(0x102B64 + 2, { (uint8_t)(CustomSaveManager::NUM_BASE_CHARACTERS) });
+		HookCrashers::PatchBytes(0x102B72 + 2, { (uint8_t)(CustomSaveManager::NUM_BASE_CHARACTERS + CustomSaveManager::NUM_WORKSHOP_CHARACTERS) });
+
 		// FUN_00a3d3e0
 		//HookCrashers::PatchBytes(0x8D862 + 2, { (uint8_t)(CustomSaveManager::NUM_BASE_CHARACTERS + 1) }); // Default 33 (0x21)
 

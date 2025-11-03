@@ -8,7 +8,7 @@
 struct CharacterData {
     uint8_t unlocked;
     uint8_t level;
-    uint32_t experience;
+    std::array<uint8_t, 4> experience;
     uint8_t weapon;
     uint8_t animal;
     uint8_t strength;
@@ -20,7 +20,7 @@ struct CharacterData {
     uint8_t bombs;
     uint8_t beefies;
     uint8_t relics_bitflag;
-    uint32_t gold;
+    std::array<uint8_t, 4> gold;
     uint8_t insane_mode;
     std::array<uint8_t, 3> insane_levels_bitflags;
     uint8_t skull;
@@ -56,7 +56,7 @@ namespace nlohmann {
             c = {};
             c.unlocked = j.value("unlocked", false) ? 0x80 : 0x00;
             c.level = j.value("level", (uint8_t)0);
-            c.experience = j.value("experience", 0u);
+            if (j.contains("experience")) j.at("experience").get_to(c.experience);
             c.weapon = j.value("weapon", (uint8_t)0);
             c.animal = j.value("animal", (uint8_t)0);
             c.strength = j.value("strength", (uint8_t)1);
@@ -68,7 +68,7 @@ namespace nlohmann {
             c.bombs = j.value("bombs", (uint8_t)0);
             c.beefies = j.value("beefies", (uint8_t)0);
             c.relics_bitflag = j.value("relics_bitflag", (uint8_t)0);
-            c.gold = j.value("gold", 0u);
+            if (j.contains("gold")) j.at("gold").get_to(c.gold);
             c.insane_mode = j.value("insane_mode", (uint8_t)0);
             if (j.contains("insane_levels_bitflags")) j.at("insane_levels_bitflags").get_to(c.insane_levels_bitflags);
             c.skull = j.value("skull", (uint8_t)0);
