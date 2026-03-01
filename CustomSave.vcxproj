@@ -19,24 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Core\CustomSaveManager.cpp" />
+    <ClCompile Include="src\Core\AddonCharacterConfig.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
-    <ClCompile Include="src\Hooks\AttachSkinGraphicHook.cpp" />
-    <ClCompile Include="src\Hooks\InitCharDataTableHook.cpp" />
+    <ClCompile Include="src\Hooks\GenerateDefaultCharacterDataHook.cpp" />
     <ClCompile Include="src\Hooks\MainMenuBuilderHook.cpp" />
+    <ClCompile Include="src\Hooks\PainterConfigHook.cpp" />
     <ClCompile Include="src\Patcher\Patches.cpp" />
     <ClCompile Include="src\pch.cpp" />
     <ClCompile Include="src\Overrides\RegisterOverrides.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Core\CustomSaveManager.h" />
+    <ClInclude Include="src\Core\AddonCharacterConfig.h" />
     <ClInclude Include="src\Data\CharacterData.h" />
     <ClInclude Include="src\Data\GlobalData.h" />
     <ClInclude Include="src\framework.h" />
-    <ClInclude Include="src\Hooks\AttachSkinGraphicHook.h" />
-    <ClInclude Include="src\Hooks\InitCharDataTableHook.h" />
+    <ClInclude Include="src\Hooks\GenerateDefaultCharacterDataHook.h" />
     <ClInclude Include="src\Hooks\MainMenuBuilderHook.h" />
+    <ClInclude Include="src\Hooks\PainterConfigHook.h" />
     <ClInclude Include="src\Patcher\Patches.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\Overrides\RegisterOverrides.h" />
@@ -58,26 +58,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -134,7 +134,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\HookCrashers\include;$(SolutionDir)\External\json\;E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\External\detours\include;$(SolutionDir)\External\spdlog\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\External\detours\include;D:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\HookCrashers\include;$(SolutionDir)\External\json\;E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\External\detours\include;$(SolutionDir)\External\spdlog\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -142,11 +142,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(SolutionDir)\External\detours\lib.X86;E:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\External\detours\lib.X86;D:\Programming\CastleCrashersRemaster\ASI modding\ilVonBurzaAsiModding\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>HookCrashers.lib;detours.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)CustomSave.asi" "E:\SteamLibrary\steamapps\common\CastleCrashers\mods"  /y</Command>
+      <Command>copy "$(TargetDir)CustomSave.asi" "D:\SteamLibrary\steamapps\common\CastleCrashers\mods"  /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

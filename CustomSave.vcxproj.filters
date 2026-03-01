@@ -27,19 +27,19 @@
     <ClCompile Include="src\dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Hooks\AttachSkinGraphicHook.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Hooks\InitCharDataTableHook.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Core\CustomSaveManager.cpp">
+    <ClCompile Include="src\Core\AddonCharacterConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Hooks\MainMenuBuilderHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Patcher\Patches.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hooks\GenerateDefaultCharacterDataHook.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hooks\PainterConfigHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,25 +59,25 @@
     <ClInclude Include="src\Overrides\RegisterOverrides.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Hooks\AttachSkinGraphicHook.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Hooks\InitCharDataTableHook.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Data\GlobalData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Data\CharacterData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\CustomSaveManager.h">
+    <ClInclude Include="src\Core\AddonCharacterConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Hooks\MainMenuBuilderHook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Patcher\Patches.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hooks\GenerateDefaultCharacterDataHook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hooks\PainterConfigHook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

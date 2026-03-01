@@ -4,7 +4,6 @@
 #include <vector>
 #include <new>
 #include <HookCrashers.h>
-#include "../Core/CustomSaveManager.h"
 #include <HookCrashers/Public/NativeCaller.h>
 #include <HookCrashers/Public/NativeFunctions.h>
 
@@ -137,8 +136,8 @@ namespace CustomSave {
         HookCrashers::LogInfo("[FirstTimeMenu] User clicked ACCEPT.");
 
         // Esegui le operazioni di salvataggio
-        CustomSave::CustomSaveManager::getInstance().triggerOriginalSaveImport();
-        CustomSave::CustomSaveManager::getInstance().markFirstTimeSetupAsComplete();
+        //CustomSave::CustomSaveManager::getInstance().triggerOriginalSaveImport();
+        //CustomSave::CustomSaveManager::getInstance().markFirstTimeSetupAsComplete();
 
         // Ripristina lo stato originale del menu PRIMA di cambiare stato
         RestoreOriginalMenuState();
@@ -154,8 +153,8 @@ namespace CustomSave {
         HookCrashers::LogInfo("[FirstTimeMenu] User clicked DECLINE.");
 
         // Esegui le operazioni di salvataggio
-        CustomSave::CustomSaveManager::getInstance().declineOriginalSaveImport();
-        CustomSave::CustomSaveManager::getInstance().markFirstTimeSetupAsComplete();
+        //CustomSave::CustomSaveManager::getInstance().declineOriginalSaveImport();
+        //CustomSave::CustomSaveManager::getInstance().markFirstTimeSetupAsComplete();
 
         // Ripristina lo stato originale del menu PRIMA di cambiare stato
         RestoreOriginalMenuState();
@@ -398,9 +397,9 @@ namespace CustomSave {
         *(uintptr_t*)((uintptr_t)this_ptr + 0x40) = (uintptr_t)pNewBigDataBlock;
         g_bMenuHookActive = true;
 
-        if (CustomSave::CustomSaveManager::getInstance().isFirstTimeSetupNeeded()) {
+        /*if (CustomSave::CustomSaveManager::getInstance().isFirstTimeSetupNeeded()) {
             SetMenuState(this_ptr, FIRST_TIME_MENU_ID, pOurHandlerSlot);
-        }
+        }*/
 
         // Save buttonchoices handler to use later
         g_pButtonChoicesHandler = (void*)(pOriginalBigDataBlock + (0x17 * HANDLER_SIZE));

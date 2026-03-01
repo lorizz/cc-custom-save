@@ -1,5 +1,4 @@
 #include "RegisterOverrides.h"
-#include "../Core/CustomSaveManager.h"
 #include <HookCrashers.h> // L'UNICO header che ti serve ora!
 #include <HookCrashers/Public/NativeCaller.h>
 #include <HookCrashers/Public/NativeFunctions.h>
@@ -25,7 +24,7 @@ static size_t s_current_write_offset = 0;
 
 namespace CustomSave {
 
-    void ReadStorageOverride(void* thisPtr, int swfContext, uint32_t functionIdRaw, int paramCount, HC_SWFArgument** swfArgs, HC_SWFReturn* swfReturn, uint32_t callbackPtr) {
+    /*void ReadStorageOverride(void* thisPtr, int swfContext, uint32_t functionIdRaw, int paramCount, HC_SWFArgument** swfArgs, HC_SWFReturn* swfReturn, uint32_t callbackPtr) {
         HookCrashers::SWF::ArgsReader args(paramCount, swfArgs);
         HookCrashers::SWF::ReturnValue ret(swfReturn);
         CustomSaveManager& saveManager = CustomSaveManager::getInstance();
@@ -309,7 +308,7 @@ namespace CustomSave {
 
         HookCrashers::LogInfo("[LobbySkinAvail] Final result for character " + std::to_string(characterId) + ": " + (isAvailable ? "AVAILABLE" : "UNAVAILABLE"));
         ret.SetBool(isAvailable);
-    }
+    }*/
 
     void LobbyTryReadySkinsOverride(void* thisPtr, int swfContext, uint32_t functionIdRaw, int paramCount, HC_SWFArgument** swfArgs, HC_SWFReturn* swfReturn, uint32_t callbackPtr) {
         HookCrashers::SWF::ReturnValue ret(swfReturn);
@@ -337,7 +336,7 @@ namespace CustomSave {
 
 
     void RegisterStorageOverrides() {
-        HookCrashers::LogInfo("[CustomSave] Registering storage overrides...");
+        /*HookCrashers::LogInfo("[CustomSave] Registering storage overrides...");
 
         if (HookCrashers::RegisterOverride(SWF_ID_READ_STORAGE, ReadStorageOverride)) {
             HookCrashers::LogInfo("[CustomSave] ReadStorage override registered (ID: 0x3F).");
@@ -351,7 +350,7 @@ namespace CustomSave {
         }
         else {
             HookCrashers::LogError("[CustomSave] Failed to register WriteStorage override!");
-        }
+        }*/
 
         /*if (HookCrashers::RegisterOverride(SWF_ID_IS_CHARACTER_UNLOCKED_FOR_PLAYER, IsCharacterUnlockedForPlayerOverride)) {
             HookCrashers::LogInfo("[CustomSave] IsCharacterUnlockedForPlayer override registered (ID: 0xC4).");
