@@ -62,6 +62,7 @@ namespace CustomSave {
             HookCrashers::LogDebug("Parsed result");
 
             free(heapBuffer);
+            HookCrashers::LogDebug("Cleaned buffer");
 
             if (loadResult == 0 && parseResult)
             {
@@ -72,11 +73,12 @@ namespace CustomSave {
 
                 const char* emptyStr = (const char*)(base + RVA_UNK_VAR);
                 Unk_Func(pThis, emptyStr);
-                HookCrashers::LogDebug("Assigned string");
+                HookCrashers::LogDebug("Cleared file in buffer ('emptyStr')");
                 return 1;
             }
-
+            HookCrashers::LogDebug("File is valid, cleaning");
             XML_Clean(pThis);
+            HookCrashers::LogDebug("Cleaned");
         }
 
         return 0;
