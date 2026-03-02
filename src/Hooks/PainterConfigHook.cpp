@@ -1,116 +1,118 @@
 #include "PainterConfigHook.h"
 #include <windows.h>
 #include <detours.h>
-#include <malloc.h>
-#include <iostream>
 #include <HookCrashers.h>
+#include <string>
+#include <sstream>
+#include "../Core/AddonCharacterConfig.h"
 
 namespace CustomSave {
+
+    static std::string to_hex(void* ptr) {
+        std::stringstream ss;
+        ss << "0x" << std::hex << std::uppercase << (uintptr_t)ptr;
+        return ss.str();
+    }
 
     static const uintptr_t RVA_PAINTER_ENTRY = 0x5C080;
     static const uintptr_t RVA_XML_INIT = 0xA2A20;
     static const uintptr_t RVA_XML_LOAD = 0xA2F60;
     static const uintptr_t RVA_XML_PARSE = 0x5C150;
     static const uintptr_t RVA_XML_CLEAN = 0xA2C60;
-    static const uintptr_t RVA_UNK_GLOBAL = 0x261C0;
-    static const uintptr_t RVA_UNK_VAR = 0x1C24B3;
+    static const uintptr_t RVA_NOTIFY = 0x261C0;
+    static const uintptr_t RVA_GLOBAL_VAR = 0x1C24B3;
 
-    typedef void(__thiscall* tXML_Init) (void* pThis, int a2);
-    typedef int(__thiscall* tXML_Load) (void* pThis, int pFileData);
-    typedef char(__thiscall* tXML_Parse)(void* pBufferAsThis, int a2);
+    // Convenzioni interne
+    typedef void(__thiscall* tXML_Init)(void* pThis, int a2);
+    typedef int(__thiscall* tXML_Load)(void* pThis, int pFileData);
+    typedef char(__thiscall* tXML_Parse)(void* pBufferAsThis, void* pXmlDoc);
     typedef void(__thiscall* tXML_Clean)(void* pThis);
-    typedef void* (__thiscall* tUnk_Func)(void* pThis, const char* s);
-    typedef char(__thiscall* tPainterEntry)(void* pThis, int pFileData);
+    typedef void(__thiscall* tNotify)(void* pThis, const char* pStringSrc);
 
+    typedef char(__thiscall* tPainterEntry)(void* pThis, int pFileData);
     static tPainterEntry g_origPainterEntry = nullptr;
 
-    static char __cdecl HookedPainterConfig_Impl(void* pThis, int pFileData)
+    // --- IL DETOUR IN __fastcall ---
+    // ECX = pXmlDoc (this), EDX = dummy (per fastcall), Stack = pFileData
+    static char __fastcall HookedPainterConfig(void* pXmlDoc, void* edx_dummy, int pFileData)
     {
+        HookCrashers::LogDebug("[PainterHook] >>> ENTER - pXmlDoc: " + to_hex(pXmlDoc) + " pFileData: " + to_hex((void*)pFileData));
+
         uintptr_t base = (uintptr_t)GetModuleHandle(NULL);
-        uint8_t* doc = (uint8_t*)pThis;
+        uint8_t* doc = (uint8_t*)pXmlDoc;
 
         auto XML_Init = (tXML_Init)(base + RVA_XML_INIT);
         auto XML_Load = (tXML_Load)(base + RVA_XML_LOAD);
         auto XML_Parse = (tXML_Parse)(base + RVA_XML_PARSE);
         auto XML_Clean = (tXML_Clean)(base + RVA_XML_CLEAN);
-        auto Unk_Func = (tUnk_Func)(base + RVA_UNK_GLOBAL);
+        auto Notify = (tNotify)(base + RVA_NOTIFY);
+        void* globalStr = (void*)(base + RVA_GLOBAL_VAR);
 
         doc[84] = 1;
+        HookCrashers::LogDebug("[PainterHook] doc[84] = 1");
 
-        HookCrashers::LogDebug("Starting pFileData check");
         if (pFileData)
         {
-            XML_Init(pThis, 0);
-            HookCrashers::LogDebug("XML Initialized");
+            int N = AddonCharacterConfig::getInstance().getAddonCount();
+            size_t bufSize = 0x168 + (N > 10 ? (N - 10) * 32 : 0) + 64;
+            HookCrashers::LogDebug("[PainterHook] Allocating localBuf on stack, size: " + std::to_string(bufSize) + " N=" + std::to_string(N));
 
-            int loadResult = XML_Load(pThis, pFileData);
-            HookCrashers::LogDebug("Result loaded");
+            uint8_t* localBuf = (uint8_t*)_alloca(bufSize);
+            memset(localBuf, 0, bufSize);
+            HookCrashers::LogDebug("[PainterHook] localBuf at: " + to_hex(localBuf));
 
-            // 64KB sulla heap, supporta un numero molto alto di addon
-            const size_t BUFFER_SIZE = 1024 * 1024;
-            void* heapBuffer = malloc(BUFFER_SIZE);
-            if (!heapBuffer)
-            {
-                HookCrashers::LogError("Failed to allocate heap buffer!");
-                XML_Clean(pThis);
-                return 0;
-            }
-            memset(heapBuffer, 0, BUFFER_SIZE);
-            HookCrashers::LogDebug("Allocated extended buffer (64KB heap)");
+            HookCrashers::LogDebug("[PainterHook] Calling XML_Init...");
+            XML_Init(localBuf, 0);
+            HookCrashers::LogDebug("[PainterHook] XML_Init OK");
 
-            char parseResult = XML_Parse(heapBuffer, (int)pThis);
-            HookCrashers::LogDebug("Parsed result");
+            HookCrashers::LogDebug("[PainterHook] Calling XML_Load...");
+            int loadResult = XML_Load(localBuf, pFileData);
+            HookCrashers::LogDebug("[PainterHook] XML_Load Result: " + std::to_string(loadResult));
 
-            free(heapBuffer);
-            HookCrashers::LogDebug("Cleaned buffer");
+            HookCrashers::LogDebug("[PainterHook] Calling XML_Parse (pXmlDoc as this, localBuf as arg)...");
+            char parseResult = XML_Parse(pXmlDoc, localBuf);
+            HookCrashers::LogDebug("[PainterHook] XML_Parse Result: " + std::to_string((int)parseResult));
 
             if (loadResult == 0 && parseResult)
             {
-                HookCrashers::LogDebug("Cleaning xml");
-                XML_Clean(pThis);
-                doc[84] = 0;
-                HookCrashers::LogDebug("Cleaned");
+                HookCrashers::LogDebug("[PainterHook] Success Path. Calling XML_Clean...");
+                XML_Clean(localBuf);
+                HookCrashers::LogDebug("[PainterHook] XML_Clean OK");
 
-                const char* emptyStr = (const char*)(base + RVA_UNK_VAR);
-                Unk_Func(pThis, emptyStr);
-                HookCrashers::LogDebug("Cleared file in buffer ('emptyStr')");
+                doc[84] = 0;
+                HookCrashers::LogDebug("[PainterHook] doc[84] = 0. Calling Notify...");
+                //Notify(pXmlDoc, (const char*)globalStr);
+                HookCrashers::LogDebug("[PainterHook] Notify OK");
+
+                HookCrashers::LogDebug("[PainterHook] <<< EXIT Success (Return 1)");
                 return 1;
             }
-            HookCrashers::LogDebug("File is valid, cleaning");
-            XML_Clean(pThis);
-            HookCrashers::LogDebug("Cleaned");
+
+            HookCrashers::LogDebug("[PainterHook] Parse/Load failed. Calling XML_Clean...");
+            XML_Clean(localBuf);
+            HookCrashers::LogDebug("[PainterHook] XML_Clean OK");
         }
 
+        HookCrashers::LogDebug("[PainterHook] <<< EXIT Failure (Return 0)");
         return 0;
-    }
-
-    __declspec(naked) static char __stdcall HookedPainterConfig_Naked(int pFileData)
-    {
-        __asm {
-            push  pFileData
-            push  ecx
-            call  HookedPainterConfig_Impl
-            add   esp, 8
-            ret   4
-        }
     }
 
     bool SetupPainterConfigHook() {
         uintptr_t base = (uintptr_t)GetModuleHandle(NULL);
         g_origPainterEntry = (tPainterEntry)(base + RVA_PAINTER_ENTRY);
 
-        if (!g_origPainterEntry) return false;
-
         DetourTransactionBegin();
         DetourUpdateThread(GetCurrentThread());
-        DetourAttach(&(PVOID&)g_origPainterEntry, HookedPainterConfig_Naked);
+
+        // Attacchiamo la nostra __fastcall alla __thiscall originale
+        DetourAttach(&(PVOID&)g_origPainterEntry, HookedPainterConfig);
 
         if (DetourTransactionCommit() != NO_ERROR) {
-            HookCrashers::LogError("[PainterConfig] Detour FAILED");
+            HookCrashers::LogError("[PainterHook] DetourTransactionCommit FAILED!");
             return false;
         }
 
-        HookCrashers::LogInfo("[PainterConfig] Hook installed successfully (64KB heap buffer)");
+        HookCrashers::LogInfo("[PainterHook] Hooked sub_83C080 via __fastcall (Registers safe).");
         return true;
     }
 }

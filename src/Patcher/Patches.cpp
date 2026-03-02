@@ -227,6 +227,11 @@ namespace CustomSave {
 
 		// AttachWorkshopSkin
 		HookCrashers::PatchBytes(0x8D29A + 2, { (uint8_t)(totalBase + 1) });
+
+		// ============================================================
+		//  7. NETWORK CHARACTERS
+		// ============================================================
+		// HookCrashers::PatchBytes(0x103447 + 2, { (uint8_t)(-p2Start)});
 	}
 }
 

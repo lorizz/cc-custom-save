@@ -59,7 +59,7 @@ extern "C" {
         HookCrashers::LogInfo("[CustomSave] Loaded " + std::to_string(AddonCharacterConfig::getInstance().getAddonCount()) + " addon characters.");
 
         CustomSave::ApplyPatches();
-        //CustomSave::SetupPainterConfigHook();
+        CustomSave::SetupPainterConfigHook();
         CustomSave::SetupGenerateDefaultCharacterDataHook();
 
         HookCrashers::RegisterCustomSWF(50100, "GetCustomSaveData", GetCustomSaveDataHandler);
